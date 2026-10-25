@@ -1,19 +1,9 @@
 """
-Geracao do banco de dados para treino dos modelos substitutos.
-
-Metodologia: amostragem de iteracoes intermediarias do SIMP em vez de
-topologias aleatorias (Banga et al., 2018). Amostragem aleatoria pura gera
-arranjos ineficientes e desconexos que degradam a regressao (Zhang et al.,
-2024); capturar iteracoes do SIMP preserva caminhos de carga coerentes.
-
-Caso de teste: cantilever 24x24, compativel com o ambiente de RL usado no
-treinamento (Brown et al., 2022).
-
-Orcamento: 300 execucoes x 20 capturas = 6000 amostras. O schedule de
-captura segue o "Dataset 1" de Banga et al. (2018).
-
-Saida: resultados/dados/topo_data_24x24.npz
-    campos: x, y, fx, fy, load_node, run_id, rmin, nelx, nely
+gera o banco de dados dos modelos substitutos: 300 execucoes de simp num
+cantilever 24x24 (compativel com o ambiente de brown et al. 2022), com
+capturas em iteracoes intermediarias segundo o schedule de duas etapas de
+banga et al. (2018). carga, vol_frac e rmin sorteados por execucao.
+saida: resultados/dados/topo_data_24x24.npz
 """
 
 import os
@@ -27,9 +17,9 @@ from scipy.ndimage import convolve
 _DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _DIR)
 
-# o solver vive em 00_simp_e_fem.py; o nome comeca com digito e nao pode ser
+# o solver vive em 01_fem_simp.py; o nome comeca com digito e nao pode ser
 # importado diretamente, entao carregamos o modulo pelo caminho do arquivo
-_spec = spec_from_file_location("simp_e_fem", os.path.join(_DIR, "00_simp_e_fem.py"))
+_spec = spec_from_file_location("simp_e_fem", os.path.join(_DIR, "01_fem_simp.py"))
 _mod = module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 FEMSolverRL = _mod.FEMSolverRL

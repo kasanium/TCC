@@ -1,22 +1,14 @@
 """
-Solver MEF + SIMP para otimizacao topologica de minima compliancia.
+solver mef + simp (sigmund 2001; andreassen et al. 2011; bendsoe e sigmund
+2004), com montagem esparsa e operacoes vetorizadas. validado contra o caso
+cantilever de kharmanda et al. (2004). importado por todos os outros scripts
+via spec_from_file_location. rodar direto gera as duas figuras de validacao
+(caso 32x20 de kharmanda e caso de estudo 20x10).
 
-Implementacao propria em Python das rotinas classicas de otimizacao
-topologica baseada em densidades (Sigmund, 2001; Andreassen et al., 2011;
-Bendsoe e Sigmund, 2004), com montagem esparsa e operacoes vetorizadas.
-
-Validacao: caso cantilever de Kharmanda et al. (2004).
-
-Funcoes publicas:
-    lk()                                  matriz de rigidez do elemento Q4
-    precompute_filter(nelx, nely, rmin)   filtro de sensibilidade (H, Hs)
-    FE(nelx, nely, x, penal, ...)         resolve KU = F, retorna U
-    sensitivity_analysis(...)             retorna (c, dc, ce_map, vm_map)
-    optimality_criteria_update(...)       atualizacao por criterio de otimalidade
-
-Classes auxiliares para o ambiente de aprendizado por reforco:
-    FEMSolver       compliancia com densidades intermediarias (SIMP classico)
-    FEMSolverRL     compliancia binaria U^T F (formulacao de Brown et al., 2022)
+nota (2026-09-20): caso02 era 60x30; mudado para 20x10 para nao ter mais o
+dominio 60x30 do cantilever em lugar nenhum do pipeline (a comparacao PPO
+20x10 vs SIMP upscaled/polido em 60x30 foi apontada como injusta — ver
+09_resultados_cantilever.py).
 """
 
 import os
@@ -30,30 +22,12 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.linalg import spsolve
 
 plt.rcParams.update({
-    "font.family": "STIXGeneral",
-    "mathtext.fontset": "stix",
-    "font.size": 12,
-    "axes.titlesize": 14,
-    "axes.labelsize": 12,
-    "axes.linewidth": 1.5,
-    "figure.facecolor": "white",
-    "savefig.dpi": 300,
-    "savefig.bbox": "tight",
+    "font.family": "STIXGeneral", "mathtext.fontset": "stix",
+    "font.size": 15, "axes.titlesize": 19, "axes.labelsize": 15,
+    "axes.linewidth": 1.5, "figure.facecolor": "white",
+    "savefig.dpi": 300, "savefig.bbox": "tight", "savefig.facecolor": "white",
 })
 
-
-def formatar_e_salvar(fig, ax, titulo, caminho_saida, is_image=True):
-    ax.set_title(titulo, pad=15)
-    if is_image:
-        ax.set_xticks([])
-        ax.set_yticks([])
-    for spine in ax.spines.values():
-        spine.set_edgecolor("black")
-        spine.set_linewidth(1.5)
-    fig.tight_layout()
-    fig.savefig(caminho_saida)
-    plt.close(fig)
-    print(f"Arquivo salvo em: {caminho_saida}")
 
 
 def lk():
@@ -364,14 +338,28 @@ if __name__ == "__main__":
     # caso00: validacao contra Kharmanda et al. (2004); caso02: malha do projeto
     casos = [
         {
+            # validacao contra a literatura: mantido em campo continuo (cinza),
+            # fiel a como o resultado de referencia e reportado. NAO binarizar
+            # este caso — 2026-09-21.
             "nome": "caso00_original",
             "nelx": 32, "nely": 20, "volfrac": 0.4, "penal": 3.0, "rmin": 1.2,
-            "carga": "canto_inferior_direito",
+            "carga": "canto_inferior_direito", "binarizar_display": False,
         },
         {
             "nome": "caso02_novo",
-            "nelx": 60, "nely": 30, "volfrac": 0.5, "penal": 3.0, "rmin": 3.0,
-            "carga": "meio_direita",
+            # antigo (60x30, ate 2026-09-19): "nelx": 60, "nely": 30, "rmin": 3.0
+            # mudado para 20x10 (malha nativa do agente PPO) para nao haver
+            # mais o dominio 60x30 do cantilever no pipeline.
+            "nelx": 20, "nely": 10, "volfrac": 0.5, "penal": 3.0, "rmin": 1.5,
+            "carga": "meio_direita", "binarizar_display": True,
+            # 200 iteracoes fixas, sem parada antecipada — mesmo criterio
+            # de 09_resultados_cantilever.py:roda_simp() (SIMP_MAX_ITERS),
+            # para o campo continuo (e a binarizacao/polimento resultantes)
+            # serem identicos aos usados nas comparacoes com o PPO. sem
+            # isso este script parava em 31 iteracoes por criterio de
+            # convergencia (change<=0.01), dando C=89.40 em vez de 88.88 e
+            # uma forma binarizada ligeiramente diferente. 2026-09-21.
+            "iters_fixos": 200,
         },
     ]
 
@@ -382,7 +370,7 @@ if __name__ == "__main__":
         penal = caso["penal"]
         rmin = caso["rmin"]
 
-        _OUT = os.path.join(_HERE, "resultados", f'00_validacao_{caso["nome"]}.png')
+        _OUT = os.path.join(_HERE, "resultados", f'01_validacao_{caso["nome"]}.png')
         print(f"\n{'='*50}")
         print(f"Iniciando {caso['nome']} ({nelx}x{nely})")
         print(f"{'='*50}")
@@ -405,7 +393,9 @@ if __name__ == "__main__":
         c_zero, _, _, _ = sensitivity_analysis(nelx, nely, x, penal, U_zero)
         print(f"iter:   0 | obj: {c_zero:6.3f} | vol: {x.mean():.3f} | mudanca: ------")
 
-        while change > 0.01 and loop < 100:
+        iters_fixos = caso.get("iters_fixos")
+        max_loop = iters_fixos if iters_fixos else 100
+        while (loop < iters_fixos if iters_fixos else change > 0.01) and loop < max_loop:
             loop += 1
             xold = x.copy()
             U = FE(nelx, nely, x, penal, force_vector=F)
@@ -419,18 +409,48 @@ if __name__ == "__main__":
 
         _, _, ce_map, vm_map = sensitivity_analysis(nelx, nely, x, penal, U)
 
+        # topologia exibida: caso00 (kharmanda) fica em campo continuo, fiel
+        # a referencia; caso02 e binarizado, mantido so o maior componente
+        # conexo, e polido por mais algumas iteracoes SIMP na propria malha
+        # (sem upscaling) — a binarizacao pura por percentil, nesta malha
+        # grosseira, deixava um vazio encostando no engaste. a compliancia
+        # reportada continua sendo a do campo continuo. 2026-09-21.
+        if caso.get("binarizar_display"):
+            import scipy.ndimage
+            cutoff = np.percentile(x, (1 - volfrac) * 100)
+            x_bin = (x >= cutoff).astype(float).reshape(nely, nelx, order="F")
+            struct = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
+            labeled, n_comp = scipy.ndimage.label(x_bin, structure=struct)
+            if n_comp > 1:
+                sizes = scipy.ndimage.sum(x_bin, labeled, range(1, n_comp + 1))
+                x_bin = (labeled == (np.argmax(sizes) + 1)).astype(float)
+
+            x_polish = np.clip(x_bin.flatten(order="F"), 0.001, 1.0)
+            for _ in range(15):
+                x2d_p = x_polish.reshape(nely, nelx, order="F")
+                U_p = FE(nelx, nely, x2d_p, penal, force_vector=F)
+                _, dc_p, _, _ = sensitivity_analysis(nelx, nely, x2d_p, penal, U_p)
+                x_polish = optimality_criteria_update(nelx, nely, x_polish, volfrac, dc_p, H, Hs)
+            cutoff_p = np.percentile(x_polish, (1 - volfrac) * 100)
+            x_disp = (x_polish >= cutoff_p).astype(float)
+        else:
+            x_disp = x
+
         fig, axes = plt.subplots(1, 2, figsize=(13, 4))
 
-        axes[0].imshow(x.reshape((nelx, nely)).T, cmap="gray_r",
+        axes[0].imshow(x_disp.reshape((nelx, nely)).T, cmap="gray_r",
                        interpolation="none", aspect="equal")
-        axes[0].set_title(f"(a) Topologia | C = {c:.4f}", fontweight="bold")
+        axes[0].set_title(f"(a) Topologia | $C = {c:.4f}$".replace(".", "{,}"),
+                          fontweight="bold")
 
         vm_norm = vm_map / (vm_map.max() + 1e-12)
         im2 = axes[1].imshow(vm_norm, cmap="turbo", interpolation="none",
                              aspect="equal", vmin=0, vmax=1)
         cb2 = plt.colorbar(im2, ax=axes[1], fraction=0.046, pad=0.04)
-        cb2.set_label("Von Mises normalizado", fontsize=9)
-        cb2.ax.tick_params(labelsize=8)
+        cb2.set_label("Von Mises normalizado", fontsize=13)
+        cb2.ax.tick_params(labelsize=12)
+        cb2.ax.yaxis.set_major_formatter(plt.FuncFormatter(
+            lambda v, _: f"{v:.1f}".replace(".", ",")))
         axes[1].set_title("(b) Von Mises (aprox.)", fontweight="bold")
 
         for ax in axes:
@@ -440,9 +460,10 @@ if __name__ == "__main__":
                 sp.set_edgecolor("black")
                 sp.set_linewidth(1.5)
 
-        fig.suptitle(
-            rf"SIMP — Cantilever {nelx}×{nely} | $E=1,\;\nu=0.3,\;p={penal},\;r_{{min}}={rmin}$",
-            fontsize=13, y=1.02)
+        # titulo geral comentado (2026-09-21): redundante com a legenda do LaTeX.
+        # fig.suptitle(
+        #     rf"SIMP — Cantilever {nelx}×{nely} | $E=1,\;\nu=0.3,\;p={penal},\;r_{{min}}={rmin}$",
+        #     fontsize=13, y=1.02)
         fig.tight_layout()
         fig.savefig(_OUT, dpi=300, bbox_inches="tight")
         plt.close(fig)

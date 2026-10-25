@@ -1,22 +1,12 @@
 """
-Treino e benchmark dos modelos substitutos (RF, GP+PCA, CNN).
-
-Pipeline em duas partes ativas:
-    Secao 1 — treina os tres modelos e gera as curvas de aprendizado.
-    Secao 3 — mede a latencia de inferencia dos substitutos contra o MEF.
-(A secao 2, de amostragem ativa, foi descontinuada; ver nota no main.)
-
-Reprodutibilidade: a divisao treino/teste usa GroupShuffleSplit por run_id
-com SEED fixo. Executar novamente reproduz as mesmas figuras.
-
-Entrada:
-    resultados/dados/topo_data_24x24.npz (gerado por 01_coletar_dados_surrogate.py)
-    campos: x, y, fx, fy, load_node, run_id, nelx, nely
-
-Saidas:
-    resultados/03_learning_curves_surrogate.png
-    resultados/03_comparacao_surrogates.png
-    resultados/dados/surrogate_{cnn,rf,gp}_24x24.{pth,pkl}
+arquitetura da cnn substituta (entrada de 3 canais: densidade, fx, fy —
+banga et al. 2018; pilha 32/64/128 — kumarn et al. 2025) e treino/benchmark
+dos tres substitutos (rf, gp+pca, cnn) sobre o dataset do 02. split
+treino/teste por run_id (groupshufflesplit, sem vazamento entre iteracoes
+da mesma execucao). alvo: log1p(compliancia).
+saidas: resultados/03_learning_curves_surrogate.png,
+resultados/03_comparacao_surrogates.png,
+resultados/dados/surrogate_{cnn,rf,gp}_24x24.*
 """
 
 import os
@@ -48,22 +38,77 @@ sys.path.insert(0, _DIR)
 
 # os modulos 00 e 02 comecam com digito e nao podem ser importados pelo nome;
 # carregamos pelos caminhos dos arquivos
-_spec = spec_from_file_location("simp_e_fem", os.path.join(_DIR, "00_simp_e_fem.py"))
+_spec = spec_from_file_location("simp_e_fem", os.path.join(_DIR, "01_fem_simp.py"))
 _mod = module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
 FEMSolver = _mod.FEMSolver
 
-_spec2 = spec_from_file_location("arq_cnn", os.path.join(_DIR, "02_arquitetura_cnn_surrogate.py"))
-_mod2 = module_from_spec(_spec2)
-_spec2.loader.exec_module(_mod2)
-SurrogateCNN = _mod2.SurrogateCNN
+
+# --- fonte casada com o corpo do texto -------------------------------------
+# este script tem duas figuras de larguras diferentes (curvas de aprendizado
+# 9 pol.; comparacao dos substitutos, empilhada em 1 coluna, 6.3 pol.), entao
+# usamos um _pt_de(W) por figura em vez de uma unica LARGURA_FIG_POL global
+# (mesmo ajuste feito em 09_resultados_cantilever.py).
+LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do USPSC (A4, margens 3 cm / 2 cm)
+def _pt_de(W, p=12): return p * (W / LARGURA_MANCHA_POL)  # pt na pagina -> pt no matplotlib
+_pt = lambda p: _pt_de(9.0, p)  # default: curvas de aprendizado (figsize largura 9)
 
 plt.rcParams.update({
     "font.family": "STIXGeneral", "mathtext.fontset": "stix",
-    "font.size": 12, "axes.titlesize": 14, "axes.labelsize": 12,
+    "font.size": _pt(12), "axes.titlesize": _pt(12), "axes.labelsize": _pt(12),
+    "xtick.labelsize": _pt(12), "ytick.labelsize": _pt(12),
+    "legend.fontsize": _pt(12), "figure.titlesize": _pt(12),
     "axes.linewidth": 1.5, "figure.facecolor": "white",
-    "savefig.dpi": 300, "savefig.bbox": "tight",
+    "savefig.dpi": 300, "savefig.bbox": "tight", "savefig.facecolor": "white",
 })
+
+
+def _softplus_fc(in_features, out_features):
+    """Camada linear seguida de Softplus (ativacao suave para a regressao)."""
+    return nn.Sequential(nn.Linear(in_features, out_features), nn.Softplus())
+
+
+class SurrogateCNN(nn.Module):
+    """CNN para regressao de compliancia em malha 24x24.
+
+    Dimensoes ao longo da rede (entrada 24x24):
+        Conv(3->32, 3x3, pad=1):    24x24 -> 24x24
+        MaxPool(2x2):               24x24 -> 12x12
+        Conv(32->64, 3x3, pad=1):   12x12 -> 12x12
+        Conv(64->128, 3x3, pad=1):  12x12 -> 12x12
+        MaxPool(2x2):               12x12 -> 6x6
+        Flatten:                    128 * 6 * 6 = 4608
+    """
+
+    _FLAT_DIM = 128 * 6 * 6  # 4608
+
+    def __init__(self):
+        super().__init__()
+
+        # extrator convolucional 32/64/128 (Kumarn et al., 2025)
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+        )
+
+        # regressao escalar -> log1p(compliancia)
+        self.regressor = nn.Sequential(
+            _softplus_fc(self._FLAT_DIM, 256),
+            _softplus_fc(256, 64),
+            nn.Linear(64, 1),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view(x.size(0), -1)
+        return self.regressor(x)
+
 
 
 # ---------------------------------------------------------------------------
@@ -184,37 +229,6 @@ def train_gp(X_train_flat, Y_train_log, n_pca):
     return gp, scaler, pca, n_gp
 
 
-def train_gp_evaluate(X_train_flat, Y_train_log, X_test_flat, Y_test_real):
-    """Treina o GP e avalia o MAE no conjunto de teste (usado na secao 2)."""
-    scaler = StandardScaler()
-    Xtr_sc = scaler.fit_transform(X_train_flat)
-    Xte_sc = scaler.transform(X_test_flat)
-    n_comp = max(2, min(N_PCA_COMP, Xtr_sc.shape[0] - 1, Xtr_sc.shape[1]))
-    pca = PCA(n_components=n_comp)
-    Xtr_pca = pca.fit_transform(Xtr_sc)
-    Xte_pca = pca.transform(Xte_sc)
-    kernel = ConstantKernel(1.0, (1e-3, 1e3)) * RBF(1.0, (1e-2, 1e4)) + WhiteKernel(1e-3, (1e-5, 1e1))
-    gp = GaussianProcessRegressor(kernel=kernel, normalize_y=True, alpha=1e-2,
-                                  n_restarts_optimizer=1, random_state=SEED)
-    gp.fit(Xtr_pca, Y_train_log)
-    Y_pred, Y_std = gp.predict(Xte_pca, return_std=True)
-    mae = mean_absolute_error(Y_test_real, np.expm1(Y_pred))
-    return mae, gp, scaler, pca
-
-
-def selecionar_maior_incerteza(gp, scaler, pca, X_pool_flat, ja_selecionados):
-    """Seleciona a amostra de maior variancia de predicao do GP.
-
-    Amostragem adaptativa por variancia de predicao (Kudela e Matousek, 2022).
-    """
-    restantes = [i for i in range(len(X_pool_flat)) if i not in ja_selecionados]
-    if not restantes:
-        return None, -1
-    X_cand = X_pool_flat[restantes]
-    Xc_pca = pca.transform(scaler.transform(X_cand))
-    _, stds = gp.predict(Xc_pca, return_std=True)
-    melhor = restantes[np.argmax(stds)]
-    return melhor, stds.max()
 
 
 # ---------------------------------------------------------------------------
@@ -326,7 +340,7 @@ def secao1_treino(xt_flat, xe_flat, yt_log, ye_log, ye_lin,
         ax_lc.plot(n_treinos, maes, MARKS[nome] + "-", color=CORES[nome], lw=2, ms=8, label=nome)
     ax_lc.axvline(N_GP_MAX, color=CORES["GP+PCA"], ls=":", lw=1.5, alpha=0.7)
     ax_lc.text(N_GP_MAX * 1.05, ax_lc.get_ylim()[0] if ax_lc.get_ylim()[0] > 0 else 0.5,
-               f"limite GP\n(N={N_GP_MAX})", color=CORES["GP+PCA"], fontsize=9, va="bottom")
+               f"limite GP\n(N={N_GP_MAX})", color=CORES["GP+PCA"], fontsize=_pt(12), va="bottom")
     ax_lc.set_xscale("log")
     ax_lc.set_xlabel("num. de amostras de treino")
     ax_lc.set_ylabel("MAE")
@@ -340,76 +354,6 @@ def secao1_treino(xt_flat, xe_flat, yt_log, ye_log, ye_lin,
 
     return resultados, model, rf, gp, scaler, pca
 
-
-# ---------------------------------------------------------------------------
-# Secao 2 — amostragem ativa vs aleatoria (descontinuada; ver nota no main)
-# ---------------------------------------------------------------------------
-
-def secao2_active_sampling(X_op_flat, Y_op, X_test_flat, Y_test, out_fig):
-    n0 = 100
-    n_max = 500
-    eval_step = 25
-
-    rng = np.random.default_rng(SEED)
-    step_ns = list(range(n0, n_max + 1, eval_step))
-
-    # mesma semente inicial nas duas linhas para que partam do mesmo ponto
-    idx_op_shared = rng.permutation(len(X_op_flat))
-    X_seed = X_op_flat[idx_op_shared[:n0]].copy()
-    Y_seed = np.log1p(Y_op[idx_op_shared[:n0]])
-
-    print("\n[S2] amostragem aleatoria...")
-    x_rand, y_rand, i_rand = X_seed.copy(), Y_seed.copy(), n0
-    random_maes, random_ns = [], []
-    for n_target in step_ns:
-        mae, *_ = train_gp_evaluate(x_rand, y_rand, X_test_flat, Y_test)
-        random_maes.append(mae)
-        random_ns.append(n_target)
-        print(f"  n={n_target} -> MAE={mae:.2f}")
-        if n_target < n_max:
-            n_add = min(eval_step, len(idx_op_shared) - i_rand)
-            if n_add > 0:
-                x_rand = np.vstack([x_rand, X_op_flat[idx_op_shared[i_rand:i_rand+n_add]]])
-                y_rand = np.append(y_rand, np.log1p(Y_op[idx_op_shared[i_rand:i_rand+n_add]]))
-                i_rand += n_add
-
-    print("\n[S2] amostragem ativa (GP-guided)...")
-    x_active = X_seed.copy()
-    y_active = Y_seed.copy()
-    selecionados = set(idx_op_shared[:n0].tolist())
-    active_maes, active_ns = [], []
-    for n_target in step_ns:
-        mae, gp_m, sc_m, pca_m = train_gp_evaluate(x_active, y_active, X_test_flat, Y_test)
-        active_maes.append(mae)
-        active_ns.append(n_target)
-        print(f"  n={n_target} -> MAE={mae:.2f}")
-        if n_target < n_max:
-            # selecao em lote: nao reestima a covariancia a cada ponto, mas e rapido
-            for _ in range(eval_step):
-                idx_sel, _ = selecionar_maior_incerteza(gp_m, sc_m, pca_m, X_op_flat, selecionados)
-                if idx_sel is None:
-                    break
-                selecionados.add(idx_sel)
-                x_active = np.vstack([x_active, X_op_flat[idx_sel].reshape(1, -1)])
-                y_active = np.append(y_active, np.log1p(Y_op[idx_sel]))
-
-    fig, ax = plt.subplots(figsize=(9, 5))
-    ax.plot(random_ns, random_maes, "o-", color="#004488", lw=2, ms=8, label="Aleatoria")
-    ax.plot(active_ns, active_maes, "s--", color="#BB5566", lw=2, ms=8, label="Ativa (GP)")
-    ax.set_xlabel("N amostras de treino")
-    ax.set_ylabel("MAE")
-    ax.legend()
-    ax.set_title(f"Ativa vs Aleatória (GP+PCA)\nMalha 24×24 | C≤{C_CUTOFF:.0f}")
-    _spines(ax)
-    fig.tight_layout()
-    fig.savefig(out_fig)
-    plt.close(fig)
-    print(f"  salvo: {out_fig}")
-
-    delta = (random_maes[-1] - active_maes[-1]) / random_maes[-1] * 100
-    print(f"\n  aleatoria @ n={n_max}: MAE={random_maes[-1]:.3f}")
-    print(f"  ativa(gp) @ n={n_max}: MAE={active_maes[-1]:.3f}")
-    print(f"  diff: {delta:+.1f}% (negativo = ativa foi pior)")
 
 
 # ---------------------------------------------------------------------------
@@ -458,23 +402,32 @@ def secao3_benchmark(X_test_dens, X_test_flat, Y_test, X_test_cnn,
         r = results[n]
         print(f"  {n:<10} {r['t_us']:.1f} µs/am  {r['mae']:>8.2f} {r['r2']:>8.4f} {r['speedup']:>9.0f}x")
 
+    # empilhados em 1 coluna (2026-09-22): com 3 paineis lado a lado, cada
+    # um so tem LARGURA_MANCHA_POL/3 = 2.1 pol. de pagina - insuficiente
+    # para os rotulos dos eixos ("100"/"200") e a caixa de legenda em fonte
+    # real de 12pt (mesmo problema geometrico de 11/12_robustez: a razao
+    # texto/painel independe do figsize, so depende do numero de colunas).
     vmin, vmax = Y_test.min(), Y_test.max()
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    _pt3 = lambda p: _pt_de(LARGURA_MANCHA_POL, p)
+    fig, axes = plt.subplots(3, 1, figsize=(LARGURA_MANCHA_POL, 4.6 * 3))
     for ax, name in zip(axes, ["RF", "GP+PCA", "CNN"]):
         res = results[name]
         pred_plot = np.clip(res["pred"], vmin * 0.5, vmax * 1.5)
         ax.scatter(Y_test, pred_plot, alpha=0.35, s=12, color=CORES[name], zorder=2)
-        label_ideal = f'MAE={res["mae"]:.1f}  |  R²={res["r2"]:.4f}\n{res["t_us"]:.1f} µs/am'
+        label_ideal = (f'MAE = {res["mae"]:.1f}  |  R² = {res["r2"]:.4f}\n'
+                       f'{res["t_us"]:.1f} µs por amostra').replace(".", ",")
         ax.plot([vmin, vmax], [vmin, vmax], "k--", lw=1.5, label=label_ideal, zorder=3)
         ax.set_xlim(vmin * 0.9, vmax * 1.1)
         ax.set_ylim(vmin * 0.9, vmax * 1.1)
-        ax.set_xlabel("Compliance real")
-        ax.set_ylabel("Compliance predito")
-        ax.set_title(name, pad=8)
-        ax.legend(fontsize=8.5, loc="upper left")
+        ax.set_xlabel("Compliância real", fontsize=_pt3(12))
+        ax.set_ylabel("Compliância predita", fontsize=_pt3(12))
+        ax.tick_params(labelsize=_pt3(12))
+        ax.set_title(name, pad=8, fontsize=_pt3(12))
+        ax.legend(fontsize=_pt3(12), loc="upper left")
         _spines(ax)
 
-    fig.suptitle("Desempenho Preditivo dos Modelos Substitutos — Conjunto de Teste", fontsize=13)
+    # titulo geral comentado (2026-09-21): redundante com a legenda do LaTeX.
+    # fig.suptitle("Desempenho Preditivo dos Modelos Substitutos — Conjunto de Teste", fontsize=13)
     fig.tight_layout()
     fig.savefig(out_fig)
     plt.close(fig)
@@ -494,7 +447,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(data_path):
         print(f"[ERRO] dataset nao encontrado: {data_path}")
-        print("       rode 01_coletar_dados_surrogate.py primeiro.")
+        print("       rode 02_dados_surrogate.py primeiro.")
         sys.exit(1)
 
     out_lc = os.path.join(_HERE, "resultados", "03_learning_curves_surrogate.png")
@@ -569,9 +522,8 @@ if __name__ == "__main__":
         out_lc, out_cnn, out_rf, out_gp,
     )
 
-    # Secao 2 (amostragem ativa) descontinuada: empiricamente, a amostragem ativa
-    # por GP nao superou a amostragem sistematica das iteracoes do SIMP, entao a
-    # figura foi removida do trabalho. As funcoes ficam disponiveis para reuso.
+    # amostragem ativa por gp foi testada e nao superou a amostragem
+    # sistematica das iteracoes do simp; descontinuada
 
     gp_bundle = {"gp": gp, "scaler": scaler, "pca": pca}
     secao3_benchmark(
