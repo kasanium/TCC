@@ -1,0 +1,18 @@
+simp automotivo 30x30 | VF=0.3 | rmin=1.5 | ring=2
+  furo=24 elem | olhal=72 elem | VF viavel em [0.080, 0.973]
+  iter  10 | C=28.622 | vol=0.300 | mudanca=0.2000
+  iter  20 | C=23.585 | vol=0.300 | mudanca=0.0595
+  iter  30 | C=23.240 | vol=0.300 | mudanca=0.0278
+  iter  40 | C=23.111 | vol=0.300 | mudanca=0.0228
+  iter  50 | C=23.042 | vol=0.300 | mudanca=0.0184
+  iter  60 | C=22.929 | vol=0.300 | mudanca=0.0094
+
+compliance final: 22.9295 | iters: 60 | vol_final=0.300
+salvo: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/10_simp_automotivo.png
+[1/6] $r_{\min}=1{,}5$, $V=20\%$ ... C=49.47 | 52 iters
+[2/6] $r_{\min}=1{,}5$, $V=30\%$ (referência) ... C=22.93 | 60 iters
+[3/6] $r_{\min}=1{,}5$, $V=40\%$ ... C=15.81 | 48 iters
+[4/6] $r_{\min}=3{,}0$, $V=30\%$ ... C=27.41 | 24 iters
+[5/6] $r_{\min}=5{,}0$, $V=30\%$ ... C=60.72 | 13 iters
+[6/6] Sem furos, $V=30\%$ (controle) ... C=25.88 | 34 iters
+salvo: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/10_ablacao_automotivo.png

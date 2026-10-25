@@ -1,0 +1,63 @@
+carregando dados...
+regiao operacional C<=320: 6000 amostras
+C min: 3.25 | C max: 221.20 | std: 14.34
+treino: 4800 | teste fixo: 1200 (GroupShuffleSplit por run)
+
+[S1] treinando RF...
+  RF -> MAE: 1.78 | R2: 0.9484 | inf: 66.0us
+
+[S1] treinando GP+PCA (limite 500 amostras)...
+/home/mmgomes/tcc_pipeline_12_run_20260909/venv/lib64/python3.9/site-packages/sklearn/gaussian_process/kernels.py:442: ConvergenceWarning: The optimal value found for dimension 0 of parameter k2__noise_level is close to the specified lower bound 1e-05. Decreasing the bound and calling fit again may find a better value.
+  warnings.warn(
+  variancia explicada (10 PCs): 85.5%
+  GP -> MAE: 3.57 | R2: 0.7489 | inf: 10.6us
+
+[S1] treinando CNN...
+  CNN -> MAE: 0.76 | R2: 0.9848 | inf: 32.8us
+  pesos salvos.
+
+[S1] gerando learning curves...
+  N=50... /home/mmgomes/tcc_pipeline_12_run_20260909/venv/lib64/python3.9/site-packages/sklearn/gaussian_process/kernels.py:442: ConvergenceWarning: The optimal value found for dimension 0 of parameter k2__noise_level is close to the specified lower bound 1e-05. Decreasing the bound and calling fit again may find a better value.
+  warnings.warn(
+RF=7.2 | GP=40.0 | CNN=5.4
+  N=100... /home/mmgomes/tcc_pipeline_12_run_20260909/venv/lib64/python3.9/site-packages/sklearn/gaussian_process/kernels.py:442: ConvergenceWarning: The optimal value found for dimension 0 of parameter k2__noise_level is close to the specified lower bound 1e-05. Decreasing the bound and calling fit again may find a better value.
+  warnings.warn(
+RF=8.2 | GP=7.1 | CNN=5.7
+  N=200... /home/mmgomes/tcc_pipeline_12_run_20260909/venv/lib64/python3.9/site-packages/sklearn/gaussian_process/kernels.py:442: ConvergenceWarning: The optimal value found for dimension 0 of parameter k2__noise_level is close to the specified lower bound 1e-05. Decreasing the bound and calling fit again may find a better value.
+  warnings.warn(
+RF=5.7 | GP=6.9 | CNN=5.4
+  N=400... /home/mmgomes/tcc_pipeline_12_run_20260909/venv/lib64/python3.9/site-packages/sklearn/gaussian_process/kernels.py:442: ConvergenceWarning: The optimal value found for dimension 0 of parameter k2__noise_level is close to the specified lower bound 1e-05. Decreasing the bound and calling fit again may find a better value.
+  warnings.warn(
+RF=4.9 | GP=5.5 | CNN=5.3
+  N=800... /home/mmgomes/tcc_pipeline_12_run_20260909/venv/lib64/python3.9/site-packages/sklearn/gaussian_process/kernels.py:442: ConvergenceWarning: The optimal value found for dimension 0 of parameter k2__noise_level is close to the specified lower bound 1e-05. Decreasing the bound and calling fit again may find a better value.
+  warnings.warn(
+RF=4.4 | GP=3.6 | CNN=3.6
+  N=1200... /home/mmgomes/tcc_pipeline_12_run_20260909/venv/lib64/python3.9/site-packages/sklearn/gaussian_process/kernels.py:442: ConvergenceWarning: The optimal value found for dimension 0 of parameter k2__noise_level is close to the specified lower bound 1e-05. Decreasing the bound and calling fit again may find a better value.
+  warnings.warn(
+RF=4.0 | GP=3.4 | CNN=3.2
+  N=4800... /home/mmgomes/tcc_pipeline_12_run_20260909/venv/lib64/python3.9/site-packages/sklearn/gaussian_process/kernels.py:442: ConvergenceWarning: The optimal value found for dimension 0 of parameter k2__noise_level is close to the specified lower bound 1e-05. Decreasing the bound and calling fit again may find a better value.
+  warnings.warn(
+RF=1.8 | GP=3.6 | CNN=0.8
+  dados salvos: /home/mmgomes/regen03_20261020/resultados/03_learning_curves_surrogate_dados.csv
+  salvo: /home/mmgomes/regen03_20261020/resultados/03_learning_curves_surrogate.png
+
+[S3] medindo FEM (50 amostras)...
+  FEM: 205.359 ms/amostra (205359 us)
+
+[S3] medindo surrogates...
+  RF      : MAE=1.78 | R2=0.9484 | Inf=77.8us | Speedup=2638x
+  GP+PCA  : MAE=3.57 | R2=0.7489 | Inf=19.4us | Speedup=10592x
+  CNN     : MAE=0.76 | R2=0.9848 | Inf=34.4us | Speedup=5971x
+
+[S3] resumo completo (FEM baseline = 205.359 ms/amostra):
+  Modelo         Inferência      MAE       R²    Speedup
+  FEM        205.359 ms/am         —        —         1x
+  RF         77.8 µs/am      1.78   0.9484      2638x
+  GP+PCA     19.4 µs/am      3.57   0.7489     10592x
+  CNN        34.4 µs/am      0.76   0.9848      5971x
+  salvo: /home/mmgomes/regen03_20261020/resultados/03_comparacao_surrogates.png
+
+=== resumo final ===
+  RF      : MAE=1.78 | R2=0.9484 | inf=66.0us | treino=4s
+  GP+PCA  : MAE=3.57 | R2=0.7489 | inf=10.6us | treino=1s [GP cap: 500/4800]
+  CNN     : MAE=0.76 | R2=0.9848 | inf=32.8us | treino=106s

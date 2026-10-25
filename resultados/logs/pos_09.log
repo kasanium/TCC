@@ -1,0 +1,45 @@
+2026-10-20 00:54:31.950583: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+2026-10-20 00:54:31.978956: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-10-20 00:54:32.462520: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+=== avaliacao do cantilever ===
+
+1. simp 20x10 (referencia na malha do agente)...
+   C_simp = 88.8838
+   C_simp_bin (mesma malha do agente) = 66.7464
+
+2. baseline guloso eso (mesmo espaco de acoes e mesma simetria)...
+   C_eso = 78.9020
+
+3. agente ppo (greedy deterministico)...
+   C = 70.8516 | ratio = 0.797x | componentes = 1
+
+------------------------------------------------------------------
+  cantilever 20x10 | VF = 50% | simetria = horizontal
+------------------------------------------------------------------
+  Metodo                                  C   C/C_SIMP   Comp.
+  SIMP continuo (referencia)          88.88      1.00x       1
+  ESO guloso (simetria, sem treino)    78.90      0.89x       1
+  PPO (hard masking + simetria)       70.85      0.80x       1
+  SIMP binarizado (mesma malha)       66.75      0.75x       1
+------------------------------------------------------------------
+
+4. curvas de treino...
+  salvo: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/09_curvas_treino_cantilever.png
+
+comparacao com o dqn de brown (dominio 2:1)...
+2026-10-20 00:54:38.610947: E tensorflow/compiler/xla/stream_executor/cuda/cuda_driver.cc:266] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+... loading models ...
+... loading models ...
+... loading models ...
+<TopOpt_Gen instance>
+    brown: 1 componente(s) | 8s
+/home/mmgomes/tcc_pipeline_12_run_20260909/09_resultados_cantilever.py:315: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.
+  fig.tight_layout()
+  salvo: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/09_comparacao_brown.png
+
+=== concluido ===

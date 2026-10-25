@@ -1,0 +1,88 @@
+==========================================================================
+ ANALISE DE ROBUSTEZ DO SUPORTE AUTOMOTIVO 30x30
+==========================================================================
+
+nominal: C = 22.9234 (60 iters) [baseline do tcc ~23.69]
+
+A1) peca projetada (topologia nominal fixa) sob carga perturbada:
+   carga +20%           C =  33.0096   dC =  +44.00%
+   carga -20%           C =  14.6710   dC =  -36.00%
+   angulo +15 graus     C =  21.7723   dC =   -5.02%
+   angulo -15 graus     C =  21.7723   dC =   -5.02%
+   aplicacao +1 elem    C =  23.2309   dC =   +1.34%
+   aplicacao -1 elem    C =  23.2309   dC =   +1.34%
+   material: C escala exatamente com 1/E (E-20% -> C+25.00%; E+20% -> C-16.67%) — analitico
+
+A2) projeto re-otimizado sob perturbacao (simp do zero):
+   furos +1 em x        C =  19.8168   dC =  -13.55%   (50 iters)
+   furo sup. +1 em y    C =  24.4018   dC =   +6.45%   (68 iters)
+   furo inf. -1 em y    C =  24.4018   dC =   +6.45%   (68 iters)
+   raio furo +1         C =  22.3274   dC =   -2.60%   (40 iters)
+   carga +20%           C =  33.0155   dC =  +44.03%   (60 iters)
+   angulo +15 graus     C =  21.5714   dC =   -5.90%   (88 iters)
+
+A3) monte carlo simplificado da carga (peca fixa, 50 amostras):
+   C medio = 23.6976 | desvio = 4.5476 | p95 = 30.9059 | max = 33.0218 (+34.8% no p95 vs nominal)
+
+A1-PPO) topologia ppo polida fixa (C nominal = 20.5224) sob as mesmas perturbacoes:
+   carga +20%           C =  29.5523   dC =  +44.00%
+   carga -20%           C =  13.1343   dC =  -36.00%
+   angulo +15 graus     C =  19.4701   dC =   -5.13%
+   angulo -15 graus     C =  19.5162   dC =   -4.90%
+   aplicacao +1 elem    C =  20.7294   dC =   +1.01%
+   aplicacao -1 elem    C =  20.7313   dC =   +1.02%
+   MC carga: C medio = 21.2156 | desvio = 4.0691 | p95 = 27.6779 (+34.9% no p95 vs nominal do ppo)
+
+tabela: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/12_robustez.csv
+figura: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/12_robustez.png
+==========================================================================
+ MONTE CARLO MULTIVARIADO (peca fixa, 500 amostras)
+==========================================================================
+
+SIMP: C nominal = 22.9234
+   media = 24.3466 (+6.2%) | desvio = 5.4050 (cv 22.2%)
+   p5 = 15.9532 | mediana = 24.1853 | p95 = 34.0850 (+48.7%) | max = 41.4643 (+80.9%)
+   correlacao de cada variavel com C: |angulo| -0.04, magnitude +0.91, |ponto| +0.04, furos_dx -0.10, aprox_furos +0.14, raio -0.15, E_global -0.27
+   normalizada C*E/F^2: media = 24.0101 (+4.7%) | desvio = 1.8771 (cv 7.8%) | p5 = 21.3606 (-6.8%) | p95 = 27.3612 (+19.4%)
+   correlacao com a normalizada: |angulo| -0.23, |ponto| +0.05, furos_dx -0.35, aprox_furos +0.30, raio -0.48
+
+PPO: C nominal = 20.5224
+   media = 21.9276 (+6.8%) | desvio = 4.8519 (cv 22.1%)
+   p5 = 14.6463 | mediana = 21.6961 | p95 = 30.7048 (+49.6%) | max = 37.2131 (+81.3%)
+   correlacao de cada variavel com C: |angulo| -0.04, magnitude +0.91, |ponto| +0.03, furos_dx -0.11, aprox_furos +0.15, raio -0.16, E_global -0.24
+   normalizada C*E/F^2: media = 21.6389 (+5.4%) | desvio = 1.8288 (cv 8.5%) | p5 = 19.0477 (-7.2%) | p95 = 25.0080 (+21.9%)
+   correlacao com a normalizada: |angulo| -0.22, |ponto| +0.02, furos_dx -0.35, aprox_furos +0.28, raio -0.47
+
+tabela: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/12_mc_multivariado.csv
+figura: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/12_mc_multivariado.png
+==========================================================================
+ ANALISE DfAM: VIOLACAO DE OVERHANG A 45 GRAUS
+==========================================================================
+
+regenerando topologias (deterministico)...
+  automotivo 30x30: C = 22.9295 (60 iters) [esperado ~23.69]
+
+Suporte $30\times30$ (SIMP):
+   base embaixo (constrói p/ cima)        violacao =  12.7%
+   base em cima (constrói p/ baixo)       violacao =  12.7%
+   base à esquerda (constrói p/ dir.)     violacao =   1.5%
+   base à direita (constrói p/ esq.)      violacao =   4.6%
+   -> melhor orientacao: base à esquerda (constrói p/ dir.) (1.5% de suporte sacrificial)
+
+Suporte $30\times30$ (PPO polido):
+   base embaixo (constrói p/ cima)        violacao =  13.0%
+   base em cima (constrói p/ baixo)       violacao =  13.7%
+   base à esquerda (constrói p/ dir.)     violacao =   1.5%
+   base à direita (constrói p/ esq.)      violacao =   4.4%
+   -> melhor orientacao: base à esquerda (constrói p/ dir.) (1.5% de suporte sacrificial)
+
+tabela: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/12_dfam.csv
+figura: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/12_dfam.png
+==========================================================================
+ VERIFICACAO COM MALHAS REFINADAS
+==========================================================================
+  30x30 (rmin=1.5): C =   22.9295 |  60 iters | VF = 0.300 | overhang(base esq.) =  1.5% |   0.6s
+  60x60 (rmin=3.0): C =   23.5543 |  46 iters | VF = 0.300 | overhang(base esq.) =  0.6% |   2.9s
+  90x90 (rmin=4.5): C =   24.1424 |  48 iters | VF = 0.300 | overhang(base esq.) =  0.4% |   9.1s
+
+figura: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/12_malha.png

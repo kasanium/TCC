@@ -1,0 +1,37 @@
+2026-10-20 00:52:54.610456: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+2026-10-20 00:52:54.639099: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-10-20 00:52:55.120947: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+==========================================================================
+ COMPARACAO FINAL — SUPORTE AUTOMOTIVO 30x30
+==========================================================================
+
+SIMP puro:    C_cont = 22.9295 (60 iters, 0.7s) | C_bin = 20.7202
+ESO guloso:   C = 20.4154 (filtro rmin=1.5) | 606 remocoes | 4.9s
+PPO bruto:    C = 20.3231 | 606 remocoes | 6.4s
+PPO + polim.: C_bin = 20.5224 (15 iters, 0.2s) | dC vs SIMP_bin = -0.1977 (-1.0%)
+
+--------------------------------------------------------------
+  Metodo                                C   iters MEF
+--------------------------------------------------------------
+  SIMP binarizado                   20.72          60
+  ESO guloso (sem treino)           20.42         606
+  PPO bruto                         20.32         606
+  PPO + polimento (bin)             20.52          15
+--------------------------------------------------------------
+  componentes conexos do PPO bruto: 1
+  VF final: SIMP_cont 0.3000 | SIMP_bin 0.3007 | ESO 0.3000 | PPO bruto 0.3000 | PPO polido 0.3007
+
+estabilidade entre sementes:
+   seed 42 (canonico): C = 20.3231
+   v21_automotivo_30x30_seed13: C = 20.3055
+   v21_automotivo_30x30_seed21: C = 20.3120
+   v21_automotivo_30x30_seed7: C = 20.3847
+   v21_automotivo_30x30_seed99: C = 20.3137
+   media = 20.3278 | desvio amostral = 0.0324 | min = 20.3055 | max = 20.3847 | n = 5
+
+figura: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/11_comparacao_automotivo.png

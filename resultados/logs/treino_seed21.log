@@ -1,0 +1,345 @@
+2026-10-19 16:27:20.559759: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+2026-10-19 16:27:20.588033: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-10-19 16:27:21.171052: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+n_steps automatico: 768 (episodio de ~606 passos)
+======================================================================
+  PPO v21 — HARD ACTION MASKING + POLITICA FCN — Automotivo
+  Malha: 30x30 | VF: 0.3 | Steps: 3,000,000
+  n_envs 32 | n_steps 768 | gamma 1.0 | batch 1024 | epochs 4 | ent_coef 0.003
+  recompensa: log_delta (escala 10.0)
+  referencias: SIMP binarizado C=21.03 | melhor guloso C=20.82 (professor com filtro rmin=1.5)
+======================================================================
+2026-10-19 16:27:27.005333: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:27.628843: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:27.676308: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:27.941558: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:28.220251: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:28.496519: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:28.533492: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:28.625021: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:28.630747: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:28.731808: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:28.770344: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:28.809970: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:28.995151: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:29.259707: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:29.280510: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:29.406783: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:30.080018: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:30.385464: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:30.474425: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:30.598285: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:30.655591: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+2026-10-19 16:27:30.774886: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:30.942547: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:31.027608: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+2026-10-19 16:27:31.521019: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:31.796775: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2026-10-19 16:27:31.826825: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+2026-10-19 16:27:31.949424: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+2026-10-19 16:27:32.432790: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+2026-10-19 16:27:32.556881: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+2026-10-19 16:27:33.120242: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+2026-10-19 16:27:33.449026: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+[  0.7%] steps=   20000 | ep_rew= -79.912 | ep_len=  606 | kl=nan | fps=514 | eta=97min
+[  1.3%] steps=   40000 | ep_rew= -79.414 | ep_len=  606 | kl=0.0035 | fps=186 | eta=265min
+[  2.0%] steps=   60000 | ep_rew= -79.259 | ep_len=  606 | kl=0.0044 | fps=141 | eta=348min
+[  2.7%] steps=   80000 | ep_rew= -77.819 | ep_len=  606 | kl=0.0061 | fps=117 | eta=416min
+[  3.3%] steps=  100000 | ep_rew= -75.002 | ep_len=  606 | kl=0.0058 | fps=111 | eta=435min
+[  4.0%] steps=  120000 | ep_rew= -70.711 | ep_len=  606 | kl=0.0058 | fps=129 | eta=372min
+[  4.7%] steps=  140000 | ep_rew= -66.259 | ep_len=  606 | kl=0.0036 | fps=121 | eta=394min
+[  5.3%] steps=  160000 | ep_rew= -62.087 | ep_len=  606 | kl=0.0059 | fps=113 | eta=419min
+[  6.0%] steps=  180000 | ep_rew= -57.104 | ep_len=  606 | kl=0.0081 | fps=108 | eta=435min
+[  6.7%] steps=  200000 | ep_rew= -54.364 | ep_len=  606 | kl=0.0082 | fps=106 | eta=440min
+   [aval @   200000] C_greedy = 28.3729 | 606/606 | deadlock=False  <- novo melhor, salvo
+[  7.3%] steps=  220000 | ep_rew= -49.636 | ep_len=  606 | kl=0.0082 | fps=114 | eta=406min
+[  8.0%] steps=  240000 | ep_rew= -46.843 | ep_len=  606 | kl=0.0074 | fps=109 | eta=422min
+[  8.7%] steps=  260000 | ep_rew= -42.353 | ep_len=  606 | kl=0.0108 | fps=108 | eta=423min
+[  9.3%] steps=  280000 | ep_rew= -39.643 | ep_len=  606 | kl=0.0100 | fps=105 | eta=432min
+[ 10.0%] steps=  300000 | ep_rew= -36.153 | ep_len=  606 | kl=0.0102 | fps=104 | eta=433min
+[ 10.7%] steps=  320000 | ep_rew= -33.842 | ep_len=  606 | kl=0.0204 | fps=102 | eta=438min
+[ 11.3%] steps=  340000 | ep_rew= -30.972 | ep_len=  606 | kl=0.0204 | fps=107 | eta=414min
+[ 12.0%] steps=  360000 | ep_rew= -29.578 | ep_len=  606 | kl=0.0126 | fps=106 | eta=415min
+[ 12.7%] steps=  380000 | ep_rew= -27.655 | ep_len=  606 | kl=0.0088 | fps=104 | eta=420min
+[ 13.3%] steps=  400000 | ep_rew= -25.505 | ep_len=  606 | kl=0.0091 | fps=102 | eta=425min
+   [aval @   400000] C_greedy = 22.2731 | 606/606 | deadlock=False  <- novo melhor, salvo
+[ 14.0%] steps=  420000 | ep_rew= -22.948 | ep_len=  606 | kl=0.0095 | fps=102 | eta=422min
+[ 14.7%] steps=  440000 | ep_rew= -21.205 | ep_len=  606 | kl=0.0095 | fps=105 | eta=406min
+[ 15.3%] steps=  460000 | ep_rew= -20.307 | ep_len=  606 | kl=0.0073 | fps=104 | eta=407min
+[ 16.0%] steps=  480000 | ep_rew= -19.726 | ep_len=  606 | kl=0.0052 | fps=103 | eta=408min
+[ 16.7%] steps=  500000 | ep_rew= -18.904 | ep_len=  606 | kl=0.0080 | fps=102 | eta=408min
+[ 17.3%] steps=  520000 | ep_rew= -17.884 | ep_len=  606 | kl=0.0069 | fps=101 | eta=409min
+[ 18.0%] steps=  540000 | ep_rew= -16.582 | ep_len=  606 | kl=0.0069 | fps=104 | eta=394min
+[ 18.7%] steps=  560000 | ep_rew= -15.869 | ep_len=  606 | kl=0.0058 | fps=104 | eta=391min
+[ 19.3%] steps=  580000 | ep_rew= -15.547 | ep_len=  606 | kl=0.0042 | fps=102 | eta=395min
+[ 20.0%] steps=  600000 | ep_rew= -15.187 | ep_len=  606 | kl=0.0078 | fps=102 | eta=392min
+   [aval @   600000] C_greedy = 20.9899 | 606/606 | deadlock=False  <- novo melhor, salvo
+[ 20.7%] steps=  620000 | ep_rew= -14.584 | ep_len=  606 | kl=0.0073 | fps=101 | eta=393min
+[ 21.3%] steps=  640000 | ep_rew= -13.561 | ep_len=  606 | kl=0.0051 | fps=101 | eta=389min
+[ 22.0%] steps=  660000 | ep_rew= -13.330 | ep_len=  606 | kl=0.0051 | fps=102 | eta=382min
+[ 22.7%] steps=  680000 | ep_rew= -13.168 | ep_len=  606 | kl=0.0059 | fps=102 | eta=379min
+[ 23.3%] steps=  700000 | ep_rew= -12.971 | ep_len=  606 | kl=0.0055 | fps=101 | eta=380min
+[ 24.0%] steps=  720000 | ep_rew= -12.760 | ep_len=  606 | kl=0.0089 | fps=101 | eta=376min
+[ 24.7%] steps=  740000 | ep_rew= -12.633 | ep_len=  606 | kl=0.0048 | fps=100 | eta=377min
+[ 25.3%] steps=  760000 | ep_rew= -12.551 | ep_len=  606 | kl=0.0048 | fps=102 | eta=366min
+[ 26.0%] steps=  780000 | ep_rew= -12.328 | ep_len=  606 | kl=0.0043 | fps=101 | eta=366min
+[ 26.7%] steps=  800000 | ep_rew= -12.151 | ep_len=  606 | kl=0.0066 | fps=101 | eta=363min
+   [aval @   800000] C_greedy = 22.7100 | 606/606 | deadlock=False
+[ 27.3%] steps=  820000 | ep_rew= -11.981 | ep_len=  606 | kl=0.0044 | fps=100 | eta=363min
+[ 28.0%] steps=  840000 | ep_rew= -11.839 | ep_len=  606 | kl=0.0053 | fps=100 | eta=360min
+[ 28.7%] steps=  860000 | ep_rew= -11.678 | ep_len=  606 | kl=0.0053 | fps=102 | eta=350min
+[ 29.3%] steps=  880000 | ep_rew= -11.568 | ep_len=  606 | kl=0.0051 | fps=101 | eta=350min
+[ 30.0%] steps=  900000 | ep_rew= -11.500 | ep_len=  606 | kl=0.0042 | fps=101 | eta=347min
+[ 30.7%] steps=  920000 | ep_rew= -11.482 | ep_len=  606 | kl=0.0104 | fps=100 | eta=347min
+[ 31.3%] steps=  940000 | ep_rew= -11.582 | ep_len=  606 | kl=0.0060 | fps=100 | eta=343min
+[ 32.0%] steps=  960000 | ep_rew= -11.568 | ep_len=  606 | kl=0.0065 | fps=100 | eta=340min
+[ 32.7%] steps=  980000 | ep_rew= -11.606 | ep_len=  606 | kl=0.0065 | fps=101 | eta=333min
+[ 33.3%] steps= 1000000 | ep_rew= -11.561 | ep_len=  606 | kl=0.0057 | fps=101 | eta=330min
+   [aval @  1000000] C_greedy = 23.8630 | 606/606 | deadlock=False
+[ 34.0%] steps= 1020000 | ep_rew= -11.513 | ep_len=  606 | kl=0.0069 | fps=100 | eta=330min
+[ 34.7%] steps= 1040000 | ep_rew= -11.492 | ep_len=  606 | kl=0.0054 | fps=100 | eta=327min
+[ 35.3%] steps= 1060000 | ep_rew= -11.311 | ep_len=  606 | kl=0.0058 | fps=99 | eta=327min
+[ 36.0%] steps= 1080000 | ep_rew= -11.300 | ep_len=  606 | kl=0.0058 | fps=101 | eta=317min
+[ 36.7%] steps= 1100000 | ep_rew= -11.199 | ep_len=  606 | kl=0.0060 | fps=101 | eta=314min
+[ 37.3%] steps= 1120000 | ep_rew= -11.168 | ep_len=  606 | kl=0.0063 | fps=100 | eta=313min
+[ 38.0%] steps= 1140000 | ep_rew= -11.157 | ep_len=  606 | kl=0.0039 | fps=100 | eta=310min
+[ 38.7%] steps= 1160000 | ep_rew= -11.163 | ep_len=  606 | kl=0.0108 | fps=99 | eta=310min
+[ 39.3%] steps= 1180000 | ep_rew= -11.183 | ep_len=  606 | kl=0.0071 | fps=99 | eta=306min
+[ 40.0%] steps= 1200000 | ep_rew= -11.069 | ep_len=  606 | kl=0.0071 | fps=100 | eta=300min
+   [aval @  1200000] C_greedy = 22.1784 | 606/606 | deadlock=False
+[ 40.7%] steps= 1220000 | ep_rew= -10.987 | ep_len=  606 | kl=0.0068 | fps=100 | eta=297min
+[ 41.3%] steps= 1240000 | ep_rew= -10.877 | ep_len=  606 | kl=0.0070 | fps=100 | eta=293min
+[ 42.0%] steps= 1260000 | ep_rew= -10.786 | ep_len=  606 | kl=0.0089 | fps=99 | eta=293min
+[ 42.7%] steps= 1280000 | ep_rew= -10.644 | ep_len=  606 | kl=0.0069 | fps=99 | eta=290min
+[ 43.3%] steps= 1300000 | ep_rew= -10.587 | ep_len=  606 | kl=0.0069 | fps=100 | eta=283min
+[ 44.0%] steps= 1320000 | ep_rew= -10.495 | ep_len=  606 | kl=0.0057 | fps=100 | eta=280min
+[ 44.7%] steps= 1340000 | ep_rew= -10.407 | ep_len=  606 | kl=0.0078 | fps=100 | eta=277min
+[ 45.3%] steps= 1360000 | ep_rew= -10.319 | ep_len=  606 | kl=0.0080 | fps=99 | eta=276min
+[ 46.0%] steps= 1380000 | ep_rew= -10.273 | ep_len=  606 | kl=0.0071 | fps=99 | eta=273min
+[ 46.7%] steps= 1400000 | ep_rew= -10.241 | ep_len=  606 | kl=0.0071 | fps=100 | eta=267min
+   [aval @  1400000] C_greedy = 20.8947 | 606/606 | deadlock=False  <- novo melhor, salvo
+[ 47.3%] steps= 1420000 | ep_rew= -10.218 | ep_len=  606 | kl=0.0092 | fps=100 | eta=263min
+[ 48.0%] steps= 1440000 | ep_rew= -10.187 | ep_len=  606 | kl=0.0074 | fps=99 | eta=263min
+[ 48.7%] steps= 1460000 | ep_rew= -10.159 | ep_len=  606 | kl=0.0066 | fps=99 | eta=259min
+[ 49.3%] steps= 1480000 | ep_rew= -10.145 | ep_len=  606 | kl=0.0090 | fps=99 | eta=256min
+[ 50.0%] steps= 1500000 | ep_rew= -10.130 | ep_len=  606 | kl=0.0077 | fps=99 | eta=253min
+[ 50.7%] steps= 1520000 | ep_rew= -10.087 | ep_len=  606 | kl=0.0077 | fps=100 | eta=247min
+[ 51.3%] steps= 1540000 | ep_rew= -10.047 | ep_len=  606 | kl=0.0071 | fps=99 | eta=246min
+[ 52.0%] steps= 1560000 | ep_rew= -10.009 | ep_len=  606 | kl=0.0110 | fps=99 | eta=242min
+[ 52.7%] steps= 1580000 | ep_rew= -10.003 | ep_len=  606 | kl=0.0075 | fps=99 | eta=239min
+[ 53.3%] steps= 1600000 | ep_rew=  -9.991 | ep_len=  606 | kl=0.0128 | fps=99 | eta=236min
+   [aval @  1600000] C_greedy = 20.5734 | 606/606 | deadlock=False  <- novo melhor, salvo
+[ 54.0%] steps= 1620000 | ep_rew=  -9.982 | ep_len=  606 | kl=0.0128 | fps=100 | eta=230min
+[ 54.7%] steps= 1640000 | ep_rew=  -9.971 | ep_len=  606 | kl=0.0081 | fps=99 | eta=229min
+[ 55.3%] steps= 1660000 | ep_rew=  -9.954 | ep_len=  606 | kl=0.0127 | fps=99 | eta=226min
+[ 56.0%] steps= 1680000 | ep_rew=  -9.949 | ep_len=  606 | kl=0.0089 | fps=99 | eta=222min
+[ 56.7%] steps= 1700000 | ep_rew=  -9.939 | ep_len=  606 | kl=0.0102 | fps=99 | eta=219min
+[ 57.3%] steps= 1720000 | ep_rew=  -9.940 | ep_len=  606 | kl=0.0102 | fps=99 | eta=215min
+[ 58.0%] steps= 1740000 | ep_rew=  -9.931 | ep_len=  606 | kl=0.0070 | fps=99 | eta=212min
+[ 58.7%] steps= 1760000 | ep_rew=  -9.931 | ep_len=  606 | kl=0.0071 | fps=99 | eta=209min
+[ 59.3%] steps= 1780000 | ep_rew=  -9.928 | ep_len=  606 | kl=0.0077 | fps=99 | eta=205min
+[ 60.0%] steps= 1800000 | ep_rew=  -9.921 | ep_len=  606 | kl=0.0198 | fps=99 | eta=202min
+   [aval @  1800000] C_greedy = 20.5381 | 606/606 | deadlock=False  <- novo melhor, salvo
+[ 60.7%] steps= 1820000 | ep_rew=  -9.908 | ep_len=  606 | kl=0.0086 | fps=98 | eta=201min
+[ 61.3%] steps= 1840000 | ep_rew=  -9.900 | ep_len=  606 | kl=0.0086 | fps=99 | eta=195min
+[ 62.0%] steps= 1860000 | ep_rew=  -9.889 | ep_len=  606 | kl=0.0112 | fps=99 | eta=192min
+[ 62.7%] steps= 1880000 | ep_rew=  -9.893 | ep_len=  606 | kl=0.0090 | fps=99 | eta=189min
+[ 63.3%] steps= 1900000 | ep_rew=  -9.895 | ep_len=  606 | kl=0.0107 | fps=99 | eta=185min
+[ 64.0%] steps= 1920000 | ep_rew=  -9.918 | ep_len=  606 | kl=0.0136 | fps=98 | eta=184min
+[ 64.7%] steps= 1940000 | ep_rew=  -9.925 | ep_len=  606 | kl=0.0136 | fps=99 | eta=178min
+[ 65.3%] steps= 1960000 | ep_rew=  -9.935 | ep_len=  606 | kl=0.0088 | fps=99 | eta=175min
+[ 66.0%] steps= 1980000 | ep_rew=  -9.931 | ep_len=  606 | kl=0.0124 | fps=99 | eta=172min
+[ 66.7%] steps= 2000000 | ep_rew=  -9.930 | ep_len=  606 | kl=0.0152 | fps=99 | eta=168min
+   [aval @  2000000] C_greedy = 20.8980 | 606/606 | deadlock=False
+[ 67.3%] steps= 2020000 | ep_rew=  -9.913 | ep_len=  606 | kl=0.0087 | fps=99 | eta=165min
+[ 68.0%] steps= 2040000 | ep_rew=  -9.896 | ep_len=  606 | kl=0.0065 | fps=99 | eta=162min
+[ 68.7%] steps= 2060000 | ep_rew=  -9.885 | ep_len=  606 | kl=0.0065 | fps=99 | eta=158min
+[ 69.3%] steps= 2080000 | ep_rew=  -9.873 | ep_len=  606 | kl=0.0125 | fps=99 | eta=155min
+[ 70.0%] steps= 2100000 | ep_rew=  -9.868 | ep_len=  606 | kl=0.0085 | fps=99 | eta=152min
+[ 70.7%] steps= 2120000 | ep_rew=  -9.859 | ep_len=  606 | kl=0.0080 | fps=99 | eta=148min
+[ 71.3%] steps= 2140000 | ep_rew=  -9.854 | ep_len=  606 | kl=0.0082 | fps=98 | eta=146min
+[ 72.0%] steps= 2160000 | ep_rew=  -9.844 | ep_len=  606 | kl=0.0082 | fps=99 | eta=141min
+[ 72.7%] steps= 2180000 | ep_rew=  -9.835 | ep_len=  606 | kl=0.0134 | fps=99 | eta=138min
+[ 73.3%] steps= 2200000 | ep_rew=  -9.827 | ep_len=  606 | kl=0.0078 | fps=99 | eta=135min
+   [aval @  2200000] C_greedy = 20.3638 | 606/606 | deadlock=False  <- novo melhor, salvo
+[ 74.0%] steps= 2220000 | ep_rew=  -9.820 | ep_len=  606 | kl=0.0117 | fps=99 | eta=131min
+[ 74.7%] steps= 2240000 | ep_rew=  -9.817 | ep_len=  606 | kl=0.0096 | fps=98 | eta=129min
+[ 75.3%] steps= 2260000 | ep_rew=  -9.822 | ep_len=  606 | kl=0.0096 | fps=99 | eta=125min
+[ 76.0%] steps= 2280000 | ep_rew=  -9.823 | ep_len=  606 | kl=0.0093 | fps=99 | eta=121min
+[ 76.7%] steps= 2300000 | ep_rew=  -9.820 | ep_len=  606 | kl=0.0115 | fps=99 | eta=118min
+[ 77.3%] steps= 2320000 | ep_rew=  -9.812 | ep_len=  606 | kl=0.0070 | fps=99 | eta=114min
+[ 78.0%] steps= 2340000 | ep_rew=  -9.817 | ep_len=  606 | kl=0.0129 | fps=99 | eta=111min
+[ 78.7%] steps= 2360000 | ep_rew=  -9.814 | ep_len=  606 | kl=0.0088 | fps=98 | eta=109min
+[ 79.3%] steps= 2380000 | ep_rew=  -9.809 | ep_len=  606 | kl=0.0088 | fps=99 | eta=104min
+[ 80.0%] steps= 2400000 | ep_rew=  -9.805 | ep_len=  606 | kl=0.0099 | fps=99 | eta=101min
+   [aval @  2400000] C_greedy = 20.3291 | 606/606 | deadlock=False  <- novo melhor, salvo
+[ 80.7%] steps= 2420000 | ep_rew=  -9.809 | ep_len=  606 | kl=0.0126 | fps=99 | eta=98min
+[ 81.3%] steps= 2440000 | ep_rew=  -9.812 | ep_len=  606 | kl=0.0089 | fps=99 | eta=94min
+[ 82.0%] steps= 2460000 | ep_rew=  -9.811 | ep_len=  606 | kl=0.0081 | fps=99 | eta=91min
+[ 82.7%] steps= 2480000 | ep_rew=  -9.805 | ep_len=  606 | kl=0.0081 | fps=99 | eta=88min
+[ 83.3%] steps= 2500000 | ep_rew=  -9.800 | ep_len=  606 | kl=0.0142 | fps=99 | eta=84min
+[ 84.0%] steps= 2520000 | ep_rew=  -9.801 | ep_len=  606 | kl=0.0096 | fps=99 | eta=81min
+[ 84.7%] steps= 2540000 | ep_rew=  -9.796 | ep_len=  606 | kl=0.0101 | fps=99 | eta=77min
+[ 85.3%] steps= 2560000 | ep_rew=  -9.785 | ep_len=  606 | kl=0.0115 | fps=99 | eta=74min
+[ 86.0%] steps= 2580000 | ep_rew=  -9.785 | ep_len=  606 | kl=0.0115 | fps=99 | eta=71min
+[ 86.7%] steps= 2600000 | ep_rew=  -9.788 | ep_len=  606 | kl=0.0102 | fps=99 | eta=67min
+   [aval @  2600000] C_greedy = 20.3120 | 606/606 | deadlock=False  <- novo melhor, salvo
+[ 87.3%] steps= 2620000 | ep_rew=  -9.785 | ep_len=  606 | kl=0.0103 | fps=99 | eta=64min
+[ 88.0%] steps= 2640000 | ep_rew=  -9.780 | ep_len=  606 | kl=0.0098 | fps=99 | eta=61min
+[ 88.7%] steps= 2660000 | ep_rew=  -9.778 | ep_len=  606 | kl=0.0093 | fps=99 | eta=57min
+[ 89.3%] steps= 2680000 | ep_rew=  -9.776 | ep_len=  606 | kl=0.0103 | fps=99 | eta=54min
+[ 90.0%] steps= 2700000 | ep_rew=  -9.775 | ep_len=  606 | kl=0.0103 | fps=99 | eta=51min
+[ 90.7%] steps= 2720000 | ep_rew=  -9.772 | ep_len=  606 | kl=0.0094 | fps=99 | eta=47min
+[ 91.3%] steps= 2740000 | ep_rew=  -9.770 | ep_len=  606 | kl=0.0125 | fps=99 | eta=44min
+[ 92.0%] steps= 2760000 | ep_rew=  -9.770 | ep_len=  606 | kl=0.0186 | fps=99 | eta=40min
+[ 92.7%] steps= 2780000 | ep_rew=  -9.774 | ep_len=  606 | kl=0.0112 | fps=99 | eta=37min
+[ 93.3%] steps= 2800000 | ep_rew=  -9.777 | ep_len=  606 | kl=0.0112 | fps=100 | eta=33min
+   [aval @  2800000] C_greedy = 20.3133 | 606/606 | deadlock=False
+[ 94.0%] steps= 2820000 | ep_rew=  -9.785 | ep_len=  606 | kl=0.0194 | fps=99 | eta=30min
+[ 94.7%] steps= 2840000 | ep_rew=  -9.788 | ep_len=  606 | kl=0.0091 | fps=99 | eta=27min
+[ 95.3%] steps= 2860000 | ep_rew=  -9.788 | ep_len=  606 | kl=0.0189 | fps=99 | eta=24min
+[ 96.0%] steps= 2880000 | ep_rew=  -9.787 | ep_len=  606 | kl=0.0176 | fps=99 | eta=20min
+[ 96.7%] steps= 2900000 | ep_rew=  -9.776 | ep_len=  606 | kl=0.0103 | fps=99 | eta=17min
+[ 97.3%] steps= 2920000 | ep_rew=  -9.769 | ep_len=  606 | kl=0.0103 | fps=99 | eta=13min
+[ 98.0%] steps= 2940000 | ep_rew=  -9.760 | ep_len=  606 | kl=0.0093 | fps=99 | eta=10min
+[ 98.7%] steps= 2960000 | ep_rew=  -9.759 | ep_len=  606 | kl=0.0102 | fps=99 | eta=7min
+[ 99.3%] steps= 2980000 | ep_rew=  -9.760 | ep_len=  606 | kl=0.0122 | fps=99 | eta=3min
+[100.0%] steps= 3000000 | ep_rew=  -9.768 | ep_len=  606 | kl=0.0114 | fps=99 | eta=0min
+   [aval @  3000000] C_greedy = 20.3717 | 606/606 | deadlock=False
+[100.7%] steps= 3020000 | ep_rew=  -9.771 | ep_len=  606 | kl=0.0114 | fps=100 | eta=-3min
+
+acabou em 8.4h | salvo: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/dados/v21_automotivo_30x30_seed21/ppo_v21_automotivo_final.zip
+melhor por compliancia: /home/mmgomes/tcc_pipeline_12_run_20260909/resultados/dados/v21_automotivo_30x30_seed21/best_model.zip

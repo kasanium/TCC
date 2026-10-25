@@ -18,15 +18,30 @@ Ryzen Threadripper PRO 5995WX (128 threads, 512 GB de RAM), somente em CPU.
 
 ## Execução
 
+Ordem usada para gerar os resultados do texto:
+
 ```bash
-bash run_tcc.sh          # etapas rápidas, reaproveitando dados e modelos salvos
-bash run_tcc.sh --tudo   # refaz também dataset, substitutos, benchmark e treinos
+python 01_fem_simp.py
+python 13_checkerboard.py
+python 02_dados_surrogate.py      # coleta do dataset (horas)
+python 03_surrogates.py
+python 04_benchmark_brown.py
+python 07_testes_ambiente.py
+python 08_treinar_ppo.py --problem cantilever --nelx 20 --nely 10 \
+    --vol_frac 0.5 --simetria horizontal --steps 1500000
+for s in 42 7 13 21 99; do python 08_treinar_ppo.py --problem automotive --seed $s; done
+python 08_treinar_ppo.py --problem automotive --dfam_peso 10 --dfam_base baixo
+python 09_resultados_cantilever.py
+python 10_simp_automotivo.py
+python 11_resultados_automotivo.py
+python 12_analises_automotivo.py --so tudo
+python 14_campanha_dfam.py
 ```
 
-Para os seis treinos do suporte em paralelo (cinco sementes e a campanha com
-penalidade de overhang), use `run_treinos_ws11.sh`; `pos_treinos_ws11.sh`
-espera o fim dos treinos e roda as análises na ordem certa. As saídas ficam em
-`resultados/` (figuras e tabelas) e `resultados/dados/` (dados e modelos).
+Os scripts gravam figuras e tabelas em `resultados/` e dados e modelos em
+`resultados/dados/`. Neste repositório, `resultados/` traz as figuras e tabelas
+(CSV) da rodada oficial e, em `resultados/logs/`, os logs dos seis treinos do
+suporte e das análises; modelos treinados e o dataset não são publicados.
 
 ## Scripts e resultados do texto
 

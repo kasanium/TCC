@@ -1,0 +1,9 @@
+topologia,direcao_impressao,violacao_pct
+Suporte $30\times30$ (SIMP),base embaixo (constrói p/ cima),12.7
+Suporte $30\times30$ (SIMP),base em cima (constrói p/ baixo),12.7
+Suporte $30\times30$ (SIMP),base à esquerda (constrói p/ dir.),1.5
+Suporte $30\times30$ (SIMP),base à direita (constrói p/ esq.),4.6
+Suporte $30\times30$ (PPO polido),base embaixo (constrói p/ cima),13.0
+Suporte $30\times30$ (PPO polido),base em cima (constrói p/ baixo),13.7
+Suporte $30\times30$ (PPO polido),base à esquerda (constrói p/ dir.),1.5
+Suporte $30\times30$ (PPO polido),base à direita (constrói p/ esq.),4.4

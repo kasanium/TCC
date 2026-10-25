@@ -1,0 +1,3 @@
+modelo,C,dC_pct,VF,componentes,deadlock,viol_base embaixo,viol_base em cima,viol_base à esquerda,viol_base à direita
+PPO de referência,20.3231,+0.00,0.3000,1,False,13.3,13.0,1.5,4.4
+PPO com penalidade ($w=10$),20.4028,+0.39,0.3000,1,False,11.9,13.0,1.5,4.4
