@@ -4,7 +4,7 @@ efeito do filtro de sensibilidade de sigmund (2001). roda o mesmo simp/oc do
 caso de validacao de kharmanda et al. (2004) (32x20, f=0.4, p=3, 120
 iteracoes fixas, sem parada antecipada — mesmo numero de iteracoes nos dois
 casos, para a unica diferenca ser o filtro) duas vezes:
-  (a) sem filtro: H = I, Hs = 1 (o operador da eq. do filtro vira identidade,
+  (a) sem filtro: h = i, hs = 1 (o operador da eq. do filtro vira identidade,
       a sensibilidade filtrada e igual a original);
   (b) com filtro: r_min = 1.2 (mesmo valor do caso de validacao).
 
@@ -34,7 +34,7 @@ precompute_filter = _mod.precompute_filter
 
 # --- fonte casada com o corpo do texto -------------------------------------
 LARGURA_FIG_POL = 13.0        # largura do figsize deste script
-LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do USPSC (A4, margens 3 cm / 2 cm)
+LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do uspsc (a4, margens 3 cm / 2 cm)
 _ESC = LARGURA_FIG_POL / LARGURA_MANCHA_POL
 def _pt(p): return p * _ESC   # pt desejado na pagina -> pt no matplotlib
 
@@ -80,7 +80,7 @@ def indice_xadrez(x2d, thresh=0.5):
 
 def roda_simp(rmin, n_iters=N_ITERS):
     """simp/oc de kharmanda (canto inferior direito, engaste na aresta
-    esquerda) com rmin dado; rmin<=0 desliga o filtro (H=I, Hs=1)."""
+    esquerda) com rmin dado; rmin<=0 desliga o filtro (h=i, hs=1)."""
     nelx, nely = NELX, NELY
     ndof = 2 * (nelx + 1) * (nely + 1)
     F = np.zeros(ndof)

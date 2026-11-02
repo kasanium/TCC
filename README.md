@@ -21,6 +21,8 @@ Ryzen Threadripper PRO 5995WX (128 threads, 512 GB de RAM), somente em CPU.
 Ordem usada para gerar os resultados do texto:
 
 ```bash
+python -m venv venv && venv/bin/pip install -r requirements.txt
+# antes de 04 e 09: colocar o código de Brown et al. em brown_original/ (ver abaixo)
 python 01_fem_simp.py
 python 13_checkerboard.py
 python 02_dados_surrogate.py      # coleta do dataset (horas)
@@ -38,10 +40,41 @@ python 12_analises_automotivo.py --so tudo
 python 14_campanha_dfam.py
 ```
 
-Os scripts gravam figuras e tabelas em `resultados/` e dados e modelos em
-`resultados/dados/`. Neste repositório, `resultados/` traz as figuras e tabelas
-(CSV) da rodada oficial e, em `resultados/logs/`, os logs dos seis treinos do
-suporte e das análises; modelos treinados e o dataset não são publicados.
+Tudo o que a execução gera fica em `resultados/`, e esta pasta traz o da rodada
+oficial:
+
+- `resultados/*.png` e `*.csv`: figuras e tabelas;
+- `resultados/dados/`: dataset e modelos substitutos, topologia final do PPO no
+  suporte e, para cada treino, o melhor modelo (`best_model.zip`, menor
+  compliância na avaliação) e o modelo final (`ppo_*_final.zip`). O
+  `08_treinar_ppo.py` apaga os checkpoints periódicos ao fim do treino (eles só
+  servem para retomar um treino interrompido); `--manter_checkpoints` os
+  preserva. Os arquivos `.pkl` e `.zip` são guardados com Git LFS;
+- `resultados/logs/`: curva de treino de cada execução do `08_treinar_ppo.py`
+  (`treino.monitor.csv`: recompensa e comprimento de cada episódio);
+- `resultados/console/`: saída de console de cada execução (treinos, análises e
+  a verificação final dos scripts em `verificacao_final_20261102/`), de onde saem
+  os números citados no texto. Os comandos acima não a gravam: ela foi obtida
+  redirecionando a saída de cada comando para um arquivo.
+
+Reprodutibilidade: com os modelos de `resultados/dados/`, as análises (SIMP,
+heurística de remoção, robustez, Monte Carlo, *overhang*, malhas e comparações)
+reproduzem os CSVs e as figuras desta pasta byte a byte. O treinamento do PPO
+não é determinístico bit a bit entre execuções e máquinas (ambientes em
+paralelo e *threads* numéricas): com a semente 42, a melhor compliância ficou
+entre 20,29 e 20,32 em três execuções. Espere valores próximos, não idênticos.
+Os rótulos de tempo das figuras de `03_surrogates.py` e `04_benchmark_brown.py`
+também variam a cada execução.
+
+`04_benchmark_brown.py` e `09_resultados_cantilever.py` usam o código de Brown
+et al. (2022), que não é distribuído aqui: o repositório original
+(<https://github.com/nkbrown503/PhDResearch>) não declara licença. Coloque o
+diretório `Top_Opt_RL` do commit `9fcac73` em `brown_original/` e altere dois
+arquivos de `Top_Opt_RL/DQN`: em `RL_Necessities.py`, importar `Adam` de
+`tensorflow.keras.optimizers.legacy`, para carregar os pesos originais com
+TensorFlow 2.11 ou superior; e, em `TopOpt_Env_Functions.py`, calcular
+`Final_Results` no início de `Testing_Info` e deixar de imprimir e plotar a
+topologia, o que permite chamá-la sem interface gráfica.
 
 ## Scripts e resultados do texto
 

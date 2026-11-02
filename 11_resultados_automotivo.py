@@ -5,7 +5,7 @@ espaco de acoes do agente, ver rodar_guloso em 05), agente ppo bruto e
 ppo + polimento simp (15 iteracoes, woldseth et al. 2022). figura de 3
 paineis horizontais (simp, ppo bruto, von mises do ppo bruto); o polimento
 continua calculado e salvo no .npz para uso do 12_analises_automotivo.py,
-mas nao aparece mais nesta figura (2026-09-22).
+mas nao aparece na figura.
 
 requer o checkpoint resultados/dados/v21_automotivo_30x30/best_model.zip
 (gerado por 08_treinar_ppo.py --problem automotive).
@@ -59,7 +59,7 @@ rodar_simp = _m10.rodar_simp
 NELX, NELY, VOL_FRAC = 30, 30, 0.3
 PENAL, RMIN, EMIN = 3.0, 1.5, 1e-3
 POLISH_ITERS = 15
-FILTRO_ESO = 1.5   # raio do professor guloso medido como o melhor em 30x30
+FILTRO_ESO = 1.5   # raio do filtro do guloso medido como o melhor em 30x30
 
 _MODEL_PADRAO = os.path.join(_DIR, "resultados", "dados",
                              "v21_automotivo_30x30", "best_model.zip")
@@ -67,14 +67,11 @@ _OUTDIR = os.path.join(_DIR, "resultados")
 os.makedirs(_OUTDIR, exist_ok=True)
 
 # --- fonte casada com o corpo do texto -------------------------------------
-# nota (2026-09-22): a largura original do figsize (22") pediria _pt(12) =
-# 41.9pt — um titulo de 2 linhas nesse tamanho estoura o painel em 4 colunas.
-# So encolher a figura NAO resolve: a razao texto/painel e invariante quando
-# fonte e largura escalam juntas (texto ~ 12*(W/6.3), painel ~ W/4, razao
-# constante independente de W). A correcao real e mudar a grade de 1x4 para
-# 2x2, que dobra a largura disponivel por painel.
+# grade 2x2 em vez de 1x4: um titulo de 2 linhas em fonte real de 12 pt
+# estoura o painel de 4 colunas, e encolher a figura nao resolve (a razao
+# texto/painel nao depende da largura total)
 LARGURA_FIG_POL = 9.0         # largura do figsize deste script (grade 2x2, ver nota)
-LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do USPSC (A4, margens 3 cm / 2 cm)
+LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do uspsc (a4, margens 3 cm / 2 cm)
 _ESC = LARGURA_FIG_POL / LARGURA_MANCHA_POL
 def _pt(p): return p * _ESC   # pt desejado na pagina -> pt no matplotlib
 
@@ -154,7 +151,7 @@ def episodio_greedy(model_path, seed=0):
 
 def varredura_sementes(c_ref, seed=0):
     """avalia checkpoints de sementes extras (v21_automotivo_30x30_seed*/)
-    e imprime media e desvio do C_greedy — estabilidade do treino."""
+    e imprime media e desvio do c_greedy — estabilidade do treino."""
     import glob
     pads = sorted(glob.glob(os.path.join(
         _DIR, "resultados", "dados", "v21_automotivo_30x30_seed*",
@@ -256,21 +253,20 @@ if __name__ == "__main__":
 
     varredura_sementes(c_ppo, args.seed)
 
-    # figura reduzida a 3 paineis horizontais, sem o polimento SIMP (pedido
-    # do usuario, 2026-09-22): (a) SIMP puro, (b) PPO bruto, (c) Von Mises do
-    # PPO bruto (nao do polido). o polimento em si (xb_pol/c_pol_bin/vm_pol)
-    # continua sendo calculado acima e salvo no .npz, pois 12_analises_automotivo.py
-    # ainda consome a chave "polido" para as analises de robustez/dfam.
-    # clip para EMIN (nao 0.0 puro): FE() usa penalizacao SIMP sem piso Emin
+    # figura de 3 paineis horizontais: (a) simp puro, (b) ppo bruto, (c) von
+    # mises do ppo bruto. o polimento (xb_pol/c_pol_bin/vm_pol) continua
+    # calculado e salvo no .npz porque 12_analises_automotivo.py consome a
+    # chave "polido".
+    # clip para emin (nao 0.0 puro): fe() usa penalizacao simp sem piso emin
     # (x^p puro, ver 01_fem_simp.py), entao elementos com densidade exatamente
     # zero deixam a matriz de rigidez singular (acusado por "dgstrf info 1"
-    # do solver esparso) e o campo de Von Mises resultante sai todo NaN/zero.
+    # do solver esparso) e o campo de von mises resultante sai todo nan/zero.
     xb_ppo = np.clip((x_ppo > 0.5).astype(float), EMIN, 1.0)
     _, vm_ppo = avaliar(xb_ppo, bc)
     vm_ppo_show = vm_ppo.copy()
     vm_ppo_show[bc["void"]] = 0.0
 
-    # titulos sem cor (2026-09-22): texto sempre preto, sem destaque colorido
+    # titulos sem cor: texto sempre preto
     fig, axes = plt.subplots(1, 3, figsize=(9.0, 3.4), gridspec_kw={"wspace": 0.15})
     paineis = [
         (1.0 - xb_simp, "gray",

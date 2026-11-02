@@ -2,7 +2,7 @@
 analises pos-otimizacao do suporte automotivo 30x30:
   robustez : (a1) topologia nominal fixa reavaliada sob carga perturbada
              (magnitude +-20%, angulo +-15 graus, ponto +-1 elemento;
-             material e analitico, c ~ 1/E); (a2) simp re-otimizado do
+             material e analitico, c ~ 1/e); (a2) simp re-otimizado do
              zero sob perturbacao de geometria dos furos e de carga.
   dfam     : fracao de elementos solidos em violacao da regra de overhang
              de 45 graus (ibhadode et al. 2023; dangal e jung 2023) nas
@@ -10,12 +10,6 @@ analises pos-otimizacao do suporte automotivo 30x30:
              incluindo a topologia ppo polida quando 11 ja tiver salvo o
              npz. verificacao pos-otimizacao; nao e termo do objetivo nem
              da recompensa.
-             nota (2026-09-20): o cantilever foi removido desta tabela —
-             usava simp_cantilever() em 60x30 e a topologia ppo polida em
-             60x30 (09), domino que deixou de existir apos a comparacao
-             20x10 vs 60x30 upscaled ser apontada como injusta. ver nota em
-             09_resultados_cantilever.py. simp_cantilever() abaixo fica sem
-             uso, mantida (nao apagada) por precaucao.
   malha    : re-otimizacao em 30x30, 60x60 e 90x90 com escala fisica do
              filtro constante (rmin 1.5/3.0/4.5) e geometria fisica
              constante (furos e olhais escalados em ponto flutuante em
@@ -63,8 +57,8 @@ os.makedirs(_OUTDIR, exist_ok=True)
 # --- fonte casada com o corpo do texto -------------------------------------
 # este script gera figuras com larguras de figsize diferentes (robustez,
 # dfam e malha); por isso o fator de escala e calculado por figura via
-# _pt_de(W), nao por uma constante global.
-LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do USPSC (A4, margens 3 cm / 2 cm)
+# _pt_de(w), nao por uma constante global.
+LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do uspsc (a4, margens 3 cm / 2 cm)
 def _pt_de(W, p=12): return p * W / LARGURA_MANCHA_POL
 
 plt.rcParams.update({
@@ -100,7 +94,7 @@ def _spines(ax):
 
 
 def _carrega_topologia_ppo(nome):
-    """le a topologia polida salva por 09/11; None se ainda nao foi gerada."""
+    """le a topologia polida salva por 09/11; none se ainda nao foi gerada."""
     p = os.path.join(_DIR, "resultados", "dados", f"topologia_ppo_{nome}.npz")
     if not os.path.exists(p):
         print(f"  aviso: {p} nao encontrado (rode 09/11 antes) — analise do ppo pulada")
@@ -110,7 +104,7 @@ def _carrega_topologia_ppo(nome):
 
 def avaliar_topologia(x2d, bc, nelx=NELX, nely=NELY):
     """compliancia da topologia fixa sob as bcs dadas (um solve de mef).
-    clip inferior evita K singular em topologias binarias com zeros exatos."""
+    clip inferior evita k singular em topologias binarias com zeros exatos."""
     x2d = np.clip(x2d, 1e-3, 1.0)
     U = FE(nelx, nely, x2d, PENAL, fixed_dofs=bc["fixeddofs"], force_vector=bc["F"])
     c, _, _, _ = sensitivity_analysis(nelx, nely, x2d, PENAL, U)
@@ -125,11 +119,8 @@ def robustez():
     bc_nom = build_bcs(NELX, NELY)
     x_nom, _, it_nom = rodar_simp(bc_nom)
     # rodar_simp devolve x do passo k mas c do passo k-1 (c e calculado antes
-    # do update do OC, dentro do loop); reavalia aqui no MESMO campo x_nom que
-    # sera perturbado abaixo, para o denominador bater com a topologia real
-    # (2026-09-22 — antes disso, a linha "carga +-20%" do SIMP saia com
-    # +43.96%/-36.02% em vez do exato +44.00%/-36.00% que a identidade
-    # C ~ F^2 exige, por causa desse descompasso de um passo).
+    # do update do oc); reavalia aqui no mesmo campo x_nom que sera
+    # perturbado abaixo, para o denominador bater com a topologia real
     c_nom = avaliar_topologia(x_nom, bc_nom)
     print(f"\nnominal: C = {c_nom:.4f} ({it_nom} iters) [baseline do tcc ~22.92]")
 
@@ -175,9 +166,9 @@ def robustez():
         topos.append((nome, x_p, c_p))
 
     print("\nA3) monte carlo simplificado da carga (peca fixa, 50 amostras):")
-    # distribuicoes ancoradas nos casos deterministicos de A1: os extremos
-    # +-15 graus e +-20% correspondem a +-2 sigma, logo angulo ~ N(0, 7.5)
-    # e magnitude ~ N(1, 0.10); um solve de mef por amostra, peca fixa
+    # distribuicoes ancoradas nos casos deterministicos de a1: os extremos
+    # +-15 graus e +-20% correspondem a +-2 sigma, logo angulo ~ n(0, 7.5)
+    # e magnitude ~ n(1, 0.10); um solve de mef por amostra, peca fixa
     rng = np.random.default_rng(0)
     n_mc = 50
     cs_mc = np.empty(n_mc)
@@ -228,10 +219,8 @@ def robustez():
         csv.writer(f).writerows(linhas)
     print(f"\ntabela: {csv_path}")
 
-    # grade em varias linhas (2026-09-22): 7 paineis numa linha so nao cabe
-    # com fonte de 12pt real (mesmo problema geometrico do 11, ver nota la —
-    # a razao texto/painel e invariante quando so a largura total muda).
-    # 4 colunas por linha resolve, mantendo a largura por painel razoavel.
+    # grade em varias linhas: 7 paineis numa linha nao cabem com fonte real
+    # de 12 pt; 4 colunas por linha mantem a largura por painel razoavel
     n_show = len(topos)
     n_cols = min(n_show, 4)
     n_linhas = -(-n_show // n_cols)  # ceil
@@ -249,9 +238,6 @@ def robustez():
         _spines(ax)
     for ax in axes[n_show:]:
         ax.axis("off")
-    # titulo geral comentado (2026-09-21): redundante com a legenda do LaTeX.
-    # fig.suptitle("Sensibilidade do Projeto Ótimo a Perturbações de Geometria "
-    #              "e Carga — Suporte $30\\times30$", y=1.04)
     fig_path = os.path.join(_OUTDIR, "12_robustez.png")
     fig.savefig(fig_path)
     plt.close(fig)
@@ -261,8 +247,8 @@ def robustez():
 def _peca_fabricada(x_design, bc_nom, bc_p, e_campo):
     """topologia fixa como sairia da fabricacao: o olhal nominal e impresso
     cheio e o furo e usinado na posicao/raio perturbados (bc_p). o campo de
-    modulo e embutido na densidade, x_eff = x * E**(1/p), pois FE() usa
-    E_e = x_e**p sem saturar x."""
+    modulo e embutido na densidade, x_eff = x * e**(1/p), pois fe() usa
+    e_e = x_e**p sem saturar x."""
     x = np.clip(x_design, 1e-3, 1.0).copy()
     x[bc_nom["void"] | bc_nom["solid"]] = 1.0
     x[bc_p["void"]] = 1e-3
@@ -291,8 +277,8 @@ def mc_multivariado(n_mc=500, semente=0):
 
     rng = np.random.default_rng(semente)
     (h1x, h1y), (h2x, h2y) = bc_nom["centers"]
-    # angulo e ponto entram em valor absoluto: o efeito deles em C e par
-    # (+-15 graus mudam C no mesmo sentido) e a correlacao linear o zeraria.
+    # angulo e ponto entram em valor absoluto: o efeito deles em c e par
+    # (+-15 graus mudam c no mesmo sentido) e a correlacao linear o zeraria.
     # furos_dx > 0 = furos em direcao a carga; aprox_furos > 0 = furos se
     # aproximam da linha media (y cresce para baixo nas figuras)
     nomes_var = ["|angulo|", "magnitude", "|ponto|", "furos_dx", "aprox_furos",
@@ -343,7 +329,7 @@ def mc_multivariado(n_mc=500, semente=0):
         for v, r in zip(nomes_var, corr):
             linhas.append((nome, f"corr_{v}", f"{r:+.3f}", ""))
 
-        # C*E/F^2 remove a parte algebrica (C ~ F^2/E); sobra o efeito de
+        # c*e/f^2 remove a parte algebrica (c ~ f^2/e); sobra o efeito de
         # direcao/ponto da carga, furos e heterogeneidade local do modulo
         cn = cs * X[:, 6] / X[:, 1] ** 2
         reln = 100.0 * (cn - c0) / c0
@@ -386,31 +372,6 @@ def mc_multivariado(n_mc=500, semente=0):
     fig.savefig(fig_path)
     plt.close(fig)
     print(f"figura: {fig_path}")
-
-
-def simp_cantilever(nelx=60, nely=30, volfrac=0.5, penal=3.0, rmin=3.0,
-                    max_iters=200):
-    """simp classico do caso de estudo (carga no meio da aresta direita);
-    c esperado ~72.85."""
-    ndof = 2 * (nelx + 1) * (nely + 1)
-    F = np.zeros(ndof)
-    load_node = (nely + 1) * nelx + nely // 2
-    F[2 * load_node + 1] = -1.0
-    fixed_nodes = np.arange(0, nely + 1)
-    fixeddofs = np.concatenate([2 * fixed_nodes, 2 * fixed_nodes + 1])
-
-    H, Hs = precompute_filter(nelx, nely, rmin)
-    x = np.full(nelx * nely, volfrac)
-    change, loop, c = 1.0, 0, 0.0
-    while change > 0.01 and loop < max_iters:
-        loop += 1
-        xold = x.copy()
-        x2d = x.reshape(nely, nelx, order="F")
-        U = FE(nelx, nely, x2d, penal, fixed_dofs=fixeddofs, force_vector=F)
-        c, dc, _, _ = sensitivity_analysis(nelx, nely, x2d, penal, U)
-        x = optimality_criteria_update(nelx, nely, x, volfrac, dc, H, Hs)
-        change = np.linalg.norm(x - xold, np.inf)
-    return x.reshape(nely, nelx, order="F"), c, loop
 
 
 # direcao de impressao -> (sinal de avanco da base, eixo percorrido);
@@ -456,18 +417,11 @@ def dfam():
     print("=" * 74)
 
     print("\nregenerando topologias (deterministico)...")
-    # cantilever removido (2026-09-20): ver nota no topo do arquivo.
-    # x_cant, c_cant, it_c = simp_cantilever()
-    # print(f"  cantilever 60x30: C = {c_cant:.4f} ({it_c} iters) [esperado ~72.85]")
     bc = build_bcs(NELX, NELY)
     x_auto, c_auto, it_a = rodar_simp(bc)
     print(f"  automotivo 30x30: C = {c_auto:.4f} ({it_a} iters) [esperado ~22.93]")
 
     casos = [("Suporte $30\\times30$ (SIMP)", x_auto)]
-    # cantilever removido (2026-09-20): ver nota no topo do arquivo.
-    # x_pc = _carrega_topologia_ppo("cantilever")
-    # if x_pc is not None:
-    #     casos.append(("cantilever 60x30 (PPO polido)", x_pc))
     x_pa = _carrega_topologia_ppo("automotivo")
     if x_pa is not None:
         casos.append(("Suporte $30\\times30$ (PPO polido)", x_pa))
@@ -493,10 +447,9 @@ def dfam():
         csv.writer(f).writerows(linhas)
     print(f"\ntabela: {csv_path}")
 
-    # titulos encurtados (2026-09-22): "melhor/pior orientacao: base a
-    # esquerda (constroi p/ dir.)" nao cabe em 3 colunas com fonte de 12pt
-    # real (mesmo problema geometrico do 11/robustez); a parte entre
-    # parenteses (justificativa da direcao) fica so no console/csv.
+    # titulos curtos: "melhor/pior orientacao: base a esquerda (constroi p/
+    # dir.)" nao cabe em 3 colunas com fonte real de 12 pt; a justificativa
+    # da direcao fica so no console/csv
     n_rows = len(resultados)
     fig, axes = plt.subplots(n_rows, 3, figsize=(18, 4.2 * n_rows),
                              gridspec_kw={"wspace": 0.2, "hspace": 0.55})
@@ -519,9 +472,6 @@ def dfam():
             ax.set_xticks([])
             ax.set_yticks([])
             _spines(ax)
-    # titulo geral comentado (2026-09-21): redundante com a legenda do LaTeX.
-    # fig.suptitle("Análise de Fabricabilidade (DfAM) — Elementos em Violação "
-    #              "da Regra de Overhang de 45$^\\circ$", y=1.01)
     fig_path = os.path.join(_OUTDIR, "12_dfam.png")
     fig.savefig(fig_path)
     plt.close(fig)
@@ -556,9 +506,6 @@ def malha():
         ax.set_xticks([])
         ax.set_yticks([])
         _spines(ax)
-    # titulo geral comentado (2026-09-21): redundante com a legenda do LaTeX.
-    # fig.suptitle("Verificação de Independência de Malha — Suporte "
-    #              "com Escala Física de Filtro Constante", y=1.03)
     fig_path = os.path.join(_OUTDIR, "12_malha.png")
     fig.savefig(fig_path)
     plt.close(fig)

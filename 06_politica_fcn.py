@@ -25,17 +25,17 @@ from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy
 
 # os .zip do sb3 desserializam a politica pelo nome de modulo gravado no
 # checkpoint ("politica_fcn"). quem carrega este arquivo por caminho deve
-# registrar o modulo em sys.modules["politica_fcn"] ANTES do exec_module
+# registrar o modulo em sys.modules["politica_fcn"] antes do exec_module
 # (padrao usado em 07, 08, 09 e 11); a linha abaixo cobre o import normal
 if __name__ in sys.modules:
     sys.modules.setdefault("politica_fcn", sys.modules[__name__])
 
 
 class TopoConvTrunk(BaseFeaturesExtractor):
-    """Tronco convolucional que PRESERVA a resolucao espacial.
+    """tronco convolucional que preserva a resolucao espacial.
 
-    As features devolvidas sao o mapa (C, H, W) achatado; o mlp_extractor o
-    remonta. O achatamento existe so porque a API do SB3 exige um vetor.
+    as features devolvidas sao o mapa (c, h, w) achatado; o mlp_extractor o
+    remonta. o achatamento existe so porque a api do sb3 exige um vetor.
     """
 
     def __init__(self, obs_space: gym.spaces.Box, n_filters=(32, 64, 64)):
@@ -56,10 +56,10 @@ class TopoConvTrunk(BaseFeaturesExtractor):
 
 
 class TopoFCNExtractor(nn.Module):
-    """Substitui o mlp_extractor do SB3.
+    """substitui o mlp_extractor do sb3.
 
-    latent_pi tem dimensao H*W e JA SAO os logits (a action_net vira
-    Identity na politica). latent_vf e um vetor global, como de costume.
+    latent_pi tem dimensao h*w e ja sao os logits (a action_net vira
+    identity na politica). latent_vf e um vetor global, como de costume.
     """
 
     def __init__(self, c_out: int, h: int, w: int, vf_hidden: int = 128):
@@ -95,7 +95,7 @@ class TopoFCNExtractor(nn.Module):
 
 
 class TopoFCNPolicy(MaskableActorCriticPolicy):
-    """MaskableActorCriticPolicy com cabeca de ator totalmente convolucional."""
+    """maskableactorcriticpolicy com cabeca de ator totalmente convolucional."""
 
     def __init__(self, *args, nelx: int = 30, nely: int = 30,
                  n_filters=(32, 64, 64), vf_hidden: int = 128, **kwargs):
@@ -116,7 +116,7 @@ class TopoFCNPolicy(MaskableActorCriticPolicy):
         # os logits ja saem da cabeca convolucional; nada de camada densa
         # de 64 -> nelx*nely no caminho
         self.action_net = nn.Identity()
-        # o SB3 inicializa a action_net com ganho 0.01 para a politica comecar
+        # o sb3 inicializa a action_net com ganho 0.01 para a politica comecar
         # quase uniforme; como a saida agora vem de dentro do mlp_extractor
         # (ganho sqrt(2)), o mesmo encolhimento e aplicado a mao na ultima
         # convolucao da cabeca do ator

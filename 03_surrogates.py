@@ -36,8 +36,8 @@ from sklearn.preprocessing import StandardScaler
 _DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _DIR)
 
-# os modulos 00 e 02 comecam com digito e nao podem ser importados pelo nome;
-# carregamos pelos caminhos dos arquivos
+# o solver vive em 01_fem_simp.py e o modulo comeca com digito, entao nao
+# pode ser importado pelo nome; carregamos pelo caminho do arquivo
 _spec = spec_from_file_location("simp_e_fem", os.path.join(_DIR, "01_fem_simp.py"))
 _mod = module_from_spec(_spec)
 _spec.loader.exec_module(_mod)
@@ -47,9 +47,9 @@ FEMSolver = _mod.FEMSolver
 # --- fonte casada com o corpo do texto -------------------------------------
 # este script tem duas figuras de larguras diferentes (curvas de aprendizado
 # 9 pol.; comparacao dos substitutos, empilhada em 1 coluna, 6.3 pol.), entao
-# usamos um _pt_de(W) por figura em vez de uma unica LARGURA_FIG_POL global
+# usamos um _pt_de(w) por figura em vez de uma unica largura_fig_pol global
 # (mesmo ajuste feito em 09_resultados_cantilever.py).
-LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do USPSC (A4, margens 3 cm / 2 cm)
+LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do uspsc (a4, margens 3 cm / 2 cm)
 def _pt_de(W, p=12): return p * (W / LARGURA_MANCHA_POL)  # pt na pagina -> pt no matplotlib
 _pt = lambda p: _pt_de(9.0, p)  # default: curvas de aprendizado (figsize largura 9)
 
@@ -64,20 +64,20 @@ plt.rcParams.update({
 
 
 def _softplus_fc(in_features, out_features):
-    """Camada linear seguida de Softplus (ativacao suave para a regressao)."""
+    """camada linear seguida de softplus (ativacao suave para a regressao)."""
     return nn.Sequential(nn.Linear(in_features, out_features), nn.Softplus())
 
 
 class SurrogateCNN(nn.Module):
-    """CNN para regressao de compliancia em malha 24x24.
+    """cnn para regressao de compliancia em malha 24x24.
 
-    Dimensoes ao longo da rede (entrada 24x24):
-        Conv(3->32, 3x3, pad=1):    24x24 -> 24x24
-        MaxPool(2x2):               24x24 -> 12x12
-        Conv(32->64, 3x3, pad=1):   12x12 -> 12x12
-        Conv(64->128, 3x3, pad=1):  12x12 -> 12x12
-        MaxPool(2x2):               12x12 -> 6x6
-        Flatten:                    128 * 6 * 6 = 4608
+    dimensoes ao longo da rede (entrada 24x24):
+        conv(3->32, 3x3, pad=1):    24x24 -> 24x24
+        maxpool(2x2):               24x24 -> 12x12
+        conv(32->64, 3x3, pad=1):   12x12 -> 12x12
+        conv(64->128, 3x3, pad=1):  12x12 -> 12x12
+        maxpool(2x2):               12x12 -> 6x6
+        flatten:                    128 * 6 * 6 = 4608
     """
 
     _FLAT_DIM = 128 * 6 * 6  # 4608
@@ -85,7 +85,7 @@ class SurrogateCNN(nn.Module):
     def __init__(self):
         super().__init__()
 
-        # extrator convolucional 32/64/128 (Kumarn et al., 2025)
+        # extrator convolucional 32/64/128 (kumarn et al., 2025)
         self.features = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=3, padding=1),
             nn.ReLU(),
@@ -112,22 +112,22 @@ class SurrogateCNN(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Constantes
+# constantes
 # ---------------------------------------------------------------------------
 
 SEED = 42                # semente fixa para reproduzir os splits e as figuras
 C_CUTOFF = 320.0         # teto de compliancia operacional (alinhado ao codigo 01)
 TEST_SPLIT = 0.2         # divisao treino/teste 80/20
-N_GP_MAX = 500           # limite de amostras do GP (custo O(n^3); Rasmussen e Williams)
-N_PCA_COMP = 10          # componentes principais para o GP (escolha empirica)
-N_FEM_TIMING = 50        # amostras para medir a latencia do MEF
+N_GP_MAX = 500           # limite de amostras do gp (custo o(n^3); rasmussen e williams)
+N_PCA_COMP = 10          # componentes principais para o gp (escolha empirica)
+N_FEM_TIMING = 50        # amostras para medir a latencia do mef
 
 CORES = {"RF": "#CC6600", "GP+PCA": "#7733AA", "CNN": "#004488"}
 MARKS = {"RF": "o", "GP+PCA": "s", "CNN": "^"}
 
 
 # ---------------------------------------------------------------------------
-# Utilitarios
+# utilitarios
 # ---------------------------------------------------------------------------
 
 def _spines(ax):
@@ -137,12 +137,12 @@ def _spines(ax):
 
 
 def build_force_maps(load_nodes, fxs, fys, nely, nelx):
-    """Constroi mapas espaciais 2D de Fx e Fy para cada amostra.
+    """constroi mapas espaciais 2d de fx e fy para cada amostra.
 
-    O mapa e zerado exceto no elemento adjacente ao no de carga. Codificar a
-    carga como canais espaciais segue Banga et al. (2018).
+    o mapa e zerado exceto no elemento adjacente ao no de carga. codificar a
+    carga como canais espaciais segue banga et al. (2018).
 
-    Numeracao dos nos: node = (nely+1)*ix + iy; elemento adjacente
+    numeracao dos nos: node = (nely+1)*ix + iy; elemento adjacente
     (elx, ely) = (min(ix, nelx-1), min(iy, nely-1)).
     """
     n = len(load_nodes)
@@ -159,9 +159,9 @@ def build_force_maps(load_nodes, fxs, fys, nely, nelx):
 
 
 def compliance_fem(density, solver):
-    """Compliancia via SIMP modificado (Andreassen et al., 2011).
+    """compliancia via simp modificado (andreassen et al., 2011).
 
-    Usada apenas para medir a latencia do MEF na secao 3; o valor retornado
+    usada apenas para medir a latencia do mef na secao 3; o valor retornado
     nao alimenta as figuras de acuracia.
     """
     from scipy.ndimage import convolve
@@ -172,15 +172,15 @@ def compliance_fem(density, solver):
 
 
 # ---------------------------------------------------------------------------
-# Treino dos modelos
+# treino dos modelos
 # ---------------------------------------------------------------------------
 
 def train_cnn(x_train, y_train, crit, epochs=200):
-    """Treina a CNN com Adam e parada antecipada.
+    """treina a cnn com adam e parada antecipada.
 
-    Reserva 10% do treino como validacao interna (sem tocar no conjunto de
+    reserva 10% do treino como validacao interna (sem tocar no conjunto de
     teste) e interrompe se a perda de validacao nao melhora por 30 epocas.
-    Entrada: (N, 3, nely, nelx); canais densidade, Fx, Fy (Banga et al., 2018).
+    entrada: (n, 3, nely, nelx); canais densidade, fx, fy (banga et al., 2018).
     """
     xt, xv, yt, yv = train_test_split(x_train, y_train, test_size=0.1, random_state=SEED)
     model = SurrogateCNN()
@@ -209,10 +209,10 @@ def train_cnn(x_train, y_train, crit, epochs=200):
 
 
 def train_gp(X_train_flat, Y_train_log, n_pca):
-    """Treina o GP sobre as componentes principais da entrada.
+    """treina o gp sobre as componentes principais da entrada.
 
-    A entrada e [densidade(576) + fx + fy] = 578 features na malha 24x24,
-    reduzida por PCA. O GP e limitado a N_GP_MAX amostras pelo custo O(n^3).
+    a entrada e [densidade(576) + fx + fy] = 578 features na malha 24x24,
+    reduzida por pca. o gp e limitado a n_gp_max amostras pelo custo o(n^3).
     """
     scaler = StandardScaler()
     Xt_sc = scaler.fit_transform(X_train_flat)
@@ -221,7 +221,7 @@ def train_gp(X_train_flat, Y_train_log, n_pca):
     Xt_pca = pca.fit_transform(Xt_sc)
     n_gp = min(N_GP_MAX, len(Xt_pca))
     kernel = ConstantKernel(1.0, (1e-3, 1e3)) * RBF(1.0, (1e-2, 1e4)) + WhiteKernel(1e-3, (1e-5, 1e1))
-    # alpha funciona como nugget: amostras adjacentes do SIMP sao quase colineares
+    # alpha funciona como nugget: amostras adjacentes do simp sao quase colineares
     # e deixam a matriz de covariancia quase singular sem essa regularizacao
     gp = GaussianProcessRegressor(kernel=kernel, normalize_y=True, alpha=1e-2,
                                   n_restarts_optimizer=3, random_state=SEED)
@@ -232,7 +232,7 @@ def train_gp(X_train_flat, Y_train_log, n_pca):
 
 
 # ---------------------------------------------------------------------------
-# Secao 1 — treino e curvas de aprendizado
+# secao 1 — treino e curvas de aprendizado
 # ---------------------------------------------------------------------------
 
 def secao1_treino(xt_flat, xe_flat, yt_log, ye_log, ye_lin,
@@ -297,7 +297,7 @@ def secao1_treino(xt_flat, xe_flat, yt_log, ye_log, ye_lin,
         pickle.dump({"gp": gp, "scaler": scaler, "pca": pca}, f)
     print("  pesos salvos.")
 
-    # curvas de aprendizado (MAE vs numero de amostras)
+    # curvas de aprendizado (mae vs numero de amostras)
     out_lc_csv = out_lc.replace(".png", "_dados.csv")
     n_treinos = [50, 100, 200, 400, 800, 1200, len(xt_flat)]
     n_treinos = [n for n in n_treinos if n <= len(xt_flat)]
@@ -357,7 +357,7 @@ def secao1_treino(xt_flat, xe_flat, yt_log, ye_log, ye_lin,
 
 
 # ---------------------------------------------------------------------------
-# Secao 3 — benchmark de latencia substituto vs MEF
+# secao 3 — benchmark de latencia substituto vs mef
 # ---------------------------------------------------------------------------
 
 def secao3_benchmark(X_test_dens, X_test_flat, Y_test, X_test_cnn,
@@ -402,11 +402,9 @@ def secao3_benchmark(X_test_dens, X_test_flat, Y_test, X_test_cnn,
         r = results[n]
         print(f"  {n:<10} {r['t_us']:.1f} µs/am  {r['mae']:>8.2f} {r['r2']:>8.4f} {r['speedup']:>9.0f}x")
 
-    # empilhados em 1 coluna (2026-09-22): com 3 paineis lado a lado, cada
-    # um so tem LARGURA_MANCHA_POL/3 = 2.1 pol. de pagina - insuficiente
-    # para os rotulos dos eixos ("100"/"200") e a caixa de legenda em fonte
-    # real de 12pt (mesmo problema geometrico de 11/12_robustez: a razao
-    # texto/painel independe do figsize, so depende do numero de colunas).
+    # empilhados em 1 coluna: com 3 paineis lado a lado cada um teria so
+    # largura_mancha_pol/3 = 2.1 pol. de pagina, pouco para os rotulos dos
+    # eixos e a legenda em fonte real de 12 pt
     vmin, vmax = Y_test.min(), Y_test.max()
     _pt3 = lambda p: _pt_de(LARGURA_MANCHA_POL, p)
     fig, axes = plt.subplots(3, 1, figsize=(LARGURA_MANCHA_POL, 4.6 * 3))
@@ -426,8 +424,6 @@ def secao3_benchmark(X_test_dens, X_test_flat, Y_test, X_test_cnn,
         ax.legend(fontsize=_pt3(12), loc="upper left")
         _spines(ax)
 
-    # titulo geral comentado (2026-09-21): redundante com a legenda do LaTeX.
-    # fig.suptitle("Desempenho Preditivo dos Modelos Substitutos — Conjunto de Teste", fontsize=13)
     fig.tight_layout()
     fig.savefig(out_fig)
     plt.close(fig)
@@ -435,7 +431,7 @@ def secao3_benchmark(X_test_dens, X_test_flat, Y_test, X_test_cnn,
 
 
 # ---------------------------------------------------------------------------
-# Main
+# main
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -481,8 +477,8 @@ if __name__ == "__main__":
     print(f"regiao operacional C<={C_CUTOFF:.0f}: {n_total} amostras")
     print(f"C min: {y_lin.min():.2f} | C max: {y_lin.max():.2f} | std: {y_lin.std():.2f}")
 
-    # GroupShuffleSplit por run: um split aleatorio por amostra colocaria iteracoes
-    # adjacentes do mesmo run no treino e no teste, inflando o R2 por memorizacao
+    # groupshufflesplit por run: um split aleatorio por amostra colocaria iteracoes
+    # adjacentes do mesmo run no treino e no teste, inflando o r2 por memorizacao
     run_id_all = data["run_id"] if "run_id" in data else np.arange(n_total)
     run_ids = run_id_all[mask]
     gss = GroupShuffleSplit(n_splits=1, test_size=TEST_SPLIT, random_state=SEED)
@@ -493,7 +489,7 @@ if __name__ == "__main__":
     # mapas de forca reconstruidos a partir de load_node (economia de disco)
     fx_maps, fy_maps = build_force_maps(nodes, fx, fy, nely, nelx)
 
-    # RF / GP: vetor [densidade(576) + fx + fy] = 578 features (malha 24x24)
+    # rf / gp: vetor [densidade(576) + fx + fy] = 578 features (malha 24x24)
     x_flat_dens = x_raw.reshape(n_total, -1)
     x_flat_full = np.hstack([x_flat_dens, fx.reshape(-1, 1), fy.reshape(-1, 1)]).astype(np.float32)
     xt_flat = x_flat_full[id_tr]
@@ -502,14 +498,14 @@ if __name__ == "__main__":
     ye_log = y_log[id_te]
     ye_lin = y_lin[id_te]
 
-    # CNN: tensor de 3 canais (densidade, Fx_map, Fy_map) — Banga et al. (2018)
+    # cnn: tensor de 3 canais (densidade, fx_map, fy_map) — banga et al. (2018)
     x_cnn_all = np.stack([x_raw, fx_maps, fy_maps], axis=1).astype(np.float32)
     xt_cnn = torch.FloatTensor(x_cnn_all[id_tr])
     xe_cnn = torch.FloatTensor(x_cnn_all[id_te])
     yt_cnn = torch.FloatTensor(yt_log).unsqueeze(1)
     ye_cnn = torch.FloatTensor(ye_log).unsqueeze(1)
 
-    # solver para o timing do MEF na secao 3 (BCs padrao de cantilever)
+    # solver para o timing do mef na secao 3 (bcs padrao de cantilever)
     solver = FEMSolver(nelx, nely, vol_frac=0.5, penal=3.0, rmin=1.5)
     mid = nely // 2
     node_mid = (nely + 1) * nelx + mid
@@ -521,9 +517,6 @@ if __name__ == "__main__":
         xt_cnn, xe_cnn, yt_cnn, ye_cnn,
         out_lc, out_cnn, out_rf, out_gp,
     )
-
-    # amostragem ativa por gp foi testada e nao superou a amostragem
-    # sistematica das iteracoes do simp; descontinuada
 
     gp_bundle = {"gp": gp, "scaler": scaler, "pca": pca}
     secao3_benchmark(

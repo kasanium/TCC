@@ -45,7 +45,6 @@ def _br(v, nd=2):
 
 
 def main():
-    bc = m11.build_bcs(m11.NELX, m11.NELY)
     struct = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
     linhas = [("modelo", "C", "dC_pct", "VF", "componentes", "deadlock")
               + tuple(f"viol_{d.split(' (')[0]}" for d in m12._DIRECOES)]

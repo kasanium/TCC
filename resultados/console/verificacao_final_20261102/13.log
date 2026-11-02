@@ -1,0 +1,9 @@
+=== checkerboard: kharmanda 32x20, f=0.4, p=3.0, 120 iteracoes fixas ===
+
+sem filtro (H=I, Hs=1)...
+  C = 58.4861 | indice de xadrez = 6.5%
+
+com filtro (r_min=1.2)...
+  C = 57.3585 | indice de xadrez = 0.0%
+
+salvo: /home/mmgomes/tcc_final_20261102/resultados/13_checkerboard.png

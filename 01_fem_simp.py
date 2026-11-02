@@ -4,11 +4,6 @@ solver mef + simp (sigmund 2001; andreassen et al. 2011; bendsoe e sigmund
 cantilever de kharmanda et al. (2004). importado por todos os outros scripts
 via spec_from_file_location. rodar direto gera as duas figuras de validacao
 (caso 32x20 de kharmanda e caso de estudo 20x10).
-
-nota (2026-09-20): caso02 era 60x30; mudado para 20x10 para nao ter mais o
-dominio 60x30 do cantilever em lugar nenhum do pipeline (a comparacao PPO
-20x10 vs SIMP upscaled/polido em 60x30 foi apontada como injusta — ver
-09_resultados_cantilever.py).
 """
 
 import os
@@ -31,10 +26,10 @@ plt.rcParams.update({
 
 
 def lk():
-    """Matriz de rigidez do elemento quadrilatero bilinear (Q4).
+    """matriz de rigidez do elemento quadrilatero bilinear (q4).
 
-    Forma analitica para material isotropico (Sigmund, 2001;
-    Andreassen et al., 2011).
+    forma analitica para material isotropico (sigmund, 2001;
+    andreassen et al., 2011).
     """
     E, nu = 1.0, 0.3
     k = np.array([1/2 - nu/6, 1/8 + nu/8, -1/4 - nu/12, -1/8 + 3*nu/8,
@@ -51,10 +46,10 @@ def lk():
 
 
 def precompute_filter(nelx, nely, rmin):
-    """Pre-calcula o operador de filtro de sensibilidade H e a soma das
-    linhas Hs (Sigmund, 2001).
+    """pre-calcula o operador de filtro de sensibilidade h e a soma das
+    linhas hs (sigmund, 2001).
 
-    A matriz H e densa; e suficiente para as malhas usadas neste trabalho,
+    a matriz h e densa; e suficiente para as malhas usadas neste trabalho,
     mas escala mal em malhas muito grandes.
     """
     if rmin <= 0:
@@ -72,7 +67,7 @@ def precompute_filter(nelx, nely, rmin):
 
 
 def _build_indices(nelx, nely):
-    """Indices de montagem esparsa: (edofMat, iK, jK)."""
+    """indices de montagem esparsa: (edofmat, ik, jk)."""
     edofMat = np.zeros((nelx * nely, 8), dtype=int)
     for elx in range(nelx):
         for ely in range(nely):
@@ -87,10 +82,10 @@ def _build_indices(nelx, nely):
 
 
 def FE(nelx, nely, x, penal, fixed_dofs=None, force_vector=None):
-    """Resolve KU = F e retorna U.
+    """resolve ku = f e retorna u.
 
     x pode ter shape (nely*nelx,) ou (nely, nelx). fixed_dofs e
-    force_vector sao opcionais; None aplica o cantilever padrao (engaste
+    force_vector sao opcionais; none aplica o cantilever padrao (engaste
     na borda esquerda, carga unitaria no canto inferior direito).
     """
     KE = lk()
@@ -98,7 +93,7 @@ def FE(nelx, nely, x, penal, fixed_dofs=None, force_vector=None):
     x_flat = np.asarray(x).flatten(order="F")
     edofMat, iK, jK = _build_indices(nelx, nely)
 
-    # penalizacao SIMP com Emin = 0 (x^p puro)
+    # penalizacao simp com emin = 0 (x^p puro)
     E_vec = x_flat ** penal
     sK = ((KE.flatten()[np.newaxis]).T * E_vec).flatten(order="F")
     K = coo_matrix((sK, (iK, jK)), shape=(ndof, ndof)).tocsc()
@@ -118,30 +113,30 @@ def FE(nelx, nely, x, penal, fixed_dofs=None, force_vector=None):
 
 
 def sensitivity_analysis(nelx, nely, x, penal, U):
-    """Retorna (c, dc, ce_map, vm_map).
+    """retorna (c, dc, ce_map, vm_map).
 
     c        compliancia total (escalar)
     dc       sensibilidade por elemento, shape (nely*nelx,)
     ce_map   energia de deformacao por elemento, shape (nely, nelx)
-    vm_map   von Mises aproximado por elemento, shape (nely, nelx)
+    vm_map   von mises aproximado por elemento, shape (nely, nelx)
     """
     KE = lk()
     x_flat = np.asarray(x).flatten(order="F")
     edofMat, _, _ = _build_indices(nelx, nely)
     Ue = U[edofMat]                                     # (n_elem, 8)
 
-    # energia de deformacao por elemento (Andreassen et al., 2011)
+    # energia de deformacao por elemento (andreassen et al., 2011)
     ce_flat = np.einsum("ij,jk,ik->i", Ue, KE, Ue)
     E_vec = x_flat ** penal
     c = float(np.dot(E_vec, ce_flat))
 
-    # sensibilidade dc/dx_e = -p * x_e^(p-1) * ce (Sigmund, 2001)
+    # sensibilidade dc/dx_e = -p * x_e^(p-1) * ce (sigmund, 2001)
     dc = -penal * (x_flat ** (penal - 1)) * ce_flat
 
     # energia efetiva (com penalizacao) por elemento
     ce_map = (ce_flat * E_vec).reshape((nely, nelx), order="F")
 
-    # von Mises aproximado no centro do elemento Q4
+    # von mises aproximado no centro do elemento q4
     nu = 0.3
     C_mat = (1.0 / (1 - nu**2)) * np.array([
         [1,  nu, 0],
@@ -160,9 +155,9 @@ def sensitivity_analysis(nelx, nely, x, penal, U):
 
 
 def optimality_criteria_update(nelx, nely, x, volfrac, dc, H, Hs):
-    """Atualizacao das densidades por criterio de otimalidade (Sigmund, 2001).
+    """atualizacao das densidades por criterio de otimalidade (sigmund, 2001).
 
-    O multiplicador de Lagrange lambda e obtido por bisseccao para satisfazer
+    o multiplicador de lagrange lambda e obtido por bisseccao para satisfazer
     a restricao de volume.
     """
     dc = (H @ (x * dc)) / (Hs * x)
@@ -182,11 +177,11 @@ def optimality_criteria_update(nelx, nely, x, volfrac, dc, H, Hs):
 
 
 class FEMSolver:
-    """Wrapper das funcoes do modulo para uso pelo ambiente de otimizacao.
+    """wrapper das funcoes do modulo para uso pelo ambiente de otimizacao.
 
-    Condicoes de contorno fixas: engaste na borda esquerda, carga vertical
+    condicoes de contorno fixas: engaste na borda esquerda, carga vertical
     no meio da aresta direita (configuracao classica de cantilever).
-    Retorna ce_map com a penalizacao x^p embutida, coerente com o SIMP.
+    retorna ce_map com a penalizacao x^p embutida, coerente com o simp.
     """
 
     def __init__(self, nelx, nely, vol_frac=0.5, penal=3.0, rmin=1.5):
@@ -216,21 +211,21 @@ class FEMSolver:
 
 
 class FEMSolverRL:
-    """Solver MEF para o ambiente de aprendizado por reforco.
+    """solver mef para o ambiente de aprendizado por reforco.
 
-    Diferenca em relacao a FEMSolver: aqui a compliancia e calculada como
-    U^T F, coerente com a formulacao de Brown et al. (2022), que usa acoes
-    binarias (E_e em {E0, Emin}) sem densidades intermediarias. A penalizacao
+    diferenca em relacao a femsolver: aqui a compliancia e calculada como
+    u^t f, coerente com a formulacao de brown et al. (2022), que usa acoes
+    binarias (e_e em {e0, emin}) sem densidades intermediarias. a penalizacao
     x^p nao tem papel mecanico nesse regime e distorceria a escala da
     recompensa.
 
-    API:
-        solve(x) -> (U, compliance, vm_map)
-            compliance : float = U^T F
-            vm_map     : ndarray (nely, nelx), von Mises para o canal de
+    api:
+        solve(x) -> (u, compliance, vm_map)
+            compliance : float = u^t f
+            vm_map     : ndarray (nely, nelx), von mises para o canal de
                          observacao do agente
 
-    Condicoes de contorno: engaste na borda esquerda, carga vertical no meio
+    condicoes de contorno: engaste na borda esquerda, carga vertical no meio
     da aresta direita (configuracao classica de cantilever).
     """
 
@@ -286,11 +281,11 @@ class FEMSolverRL:
         return freedofs, F
 
     def solve(self, x):
-        """Resolve KU = F e retorna (U, compliance, vm_map).
+        """resolve ku = f e retorna (u, compliance, vm_map).
 
-        compliance = U^T F = sum_e E_e * (u_e^T KE u_e).
+        compliance = u^t f = sum_e e_e * (u_e^t ke u_e).
 
-        Nao aplica filtro de densidade: o agente trabalha com geometria
+        nao aplica filtro de densidade: o agente trabalha com geometria
         binaria, e filtrar borraria essa geometria.
         """
         x_flat = x.flatten(order="F")
@@ -311,9 +306,9 @@ class FEMSolverRL:
         Ue = U[self.edofMat]
         ce_flat = np.einsum("ij,jk,ik->i", Ue, self.KE, Ue)
         ce = np.maximum(ce_flat * E_vec, 0.0)
-        compliance = float(np.sum(ce))            # = U^T F
+        compliance = float(np.sum(ce))            # = u^t f
 
-        # von Mises no centro do elemento Q4
+        # von mises no centro do elemento q4
         nu = 0.3
         C_mat = (1.0 / (1 - nu**2)) * np.array([
             [1,  nu, 0],
@@ -335,30 +330,23 @@ if __name__ == "__main__":
     _HERE = os.path.dirname(os.path.abspath(__file__))
     os.makedirs(os.path.join(_HERE, "resultados"), exist_ok=True)
 
-    # caso00: validacao contra Kharmanda et al. (2004); caso02: malha do projeto
+    # caso00: validacao contra kharmanda et al. (2004); caso02: malha do projeto
     casos = [
         {
             # validacao contra a literatura: mantido em campo continuo (cinza),
-            # fiel a como o resultado de referencia e reportado. NAO binarizar
-            # este caso — 2026-09-21.
+            # fiel a como o resultado de referencia e reportado. nao binarizar
+            # este caso.
             "nome": "caso00_original",
             "nelx": 32, "nely": 20, "volfrac": 0.4, "penal": 3.0, "rmin": 1.2,
             "carga": "canto_inferior_direito", "binarizar_display": False,
         },
         {
             "nome": "caso02_novo",
-            # antigo (60x30, ate 2026-09-19): "nelx": 60, "nely": 30, "rmin": 3.0
-            # mudado para 20x10 (malha nativa do agente PPO) para nao haver
-            # mais o dominio 60x30 do cantilever no pipeline.
             "nelx": 20, "nely": 10, "volfrac": 0.5, "penal": 3.0, "rmin": 1.5,
             "carga": "meio_direita", "binarizar_display": True,
-            # 200 iteracoes fixas, sem parada antecipada — mesmo criterio
-            # de 09_resultados_cantilever.py:roda_simp() (SIMP_MAX_ITERS),
-            # para o campo continuo (e a binarizacao/polimento resultantes)
-            # serem identicos aos usados nas comparacoes com o PPO. sem
-            # isso este script parava em 31 iteracoes por criterio de
-            # convergencia (change<=0.01), dando C=89.40 em vez de 88.88 e
-            # uma forma binarizada ligeiramente diferente. 2026-09-21.
+            # 200 iteracoes fixas, sem parada antecipada: mesmo criterio de
+            # 09_resultados_cantilever.py:roda_simp() (simp_max_iters), para o campo
+            # continuo ser identico ao usado nas comparacoes com o ppo.
             "iters_fixos": 200,
         },
     ]
@@ -409,12 +397,11 @@ if __name__ == "__main__":
 
         _, _, ce_map, vm_map = sensitivity_analysis(nelx, nely, x, penal, U)
 
-        # topologia exibida: caso00 (kharmanda) fica em campo continuo, fiel
-        # a referencia; caso02 e binarizado, mantido so o maior componente
-        # conexo, e polido por mais algumas iteracoes SIMP na propria malha
-        # (sem upscaling) — a binarizacao pura por percentil, nesta malha
-        # grosseira, deixava um vazio encostando no engaste. a compliancia
-        # reportada continua sendo a do campo continuo. 2026-09-21.
+        # topologia exibida: caso00 (kharmanda) fica em campo continuo, fiel a
+        # referencia; caso02 e binarizado, mantido so o maior componente conexo
+        # e polido por algumas iteracoes simp na propria malha (a binarizacao
+        # por percentil deixava um vazio encostando no engaste). a compliancia
+        # reportada e a do campo continuo.
         if caso.get("binarizar_display"):
             import scipy.ndimage
             cutoff = np.percentile(x, (1 - volfrac) * 100)
@@ -460,10 +447,6 @@ if __name__ == "__main__":
                 sp.set_edgecolor("black")
                 sp.set_linewidth(1.5)
 
-        # titulo geral comentado (2026-09-21): redundante com a legenda do LaTeX.
-        # fig.suptitle(
-        #     rf"SIMP — Cantilever {nelx}×{nely} | $E=1,\;\nu=0.3,\;p={penal},\;r_{{min}}={rmin}$",
-        #     fontsize=13, y=1.02)
         fig.tight_layout()
         fig.savefig(_OUT, dpi=300, bbox_inches="tight")
         plt.close(fig)

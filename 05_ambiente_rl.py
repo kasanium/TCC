@@ -18,18 +18,16 @@ travando episodios em ~0.60 (ver testes em 07_testes_ambiente.py).
 rodar_guloso() e o baseline eso (xie e steven 1993) no mesmo espaco de
 acoes do agente: a cada passo remove o elemento valido de menor tensao,
 com filtro de sensibilidade opcional (sigmund 2001). o raio do filtro nao
-transfere entre malhas: em 30x30 filtrar melhora (22.78 -> 20.82 na geometria
-anterior a 2026-10; 20.42 com os furos simetricos), em
-20x10 piora (71.66 -> 82.45); sob simetria o efeito inverte de novo.
+transfere entre malhas: em 30x30 o guloso com rmin=1.5 chega a c = 20.42; em 20x10 filtrar piora
+(71.66 -> 82.45), e sob simetria o efeito inverte de novo.
 
 penalidade de overhang opcional (dfam_peso > 0): a cada passo a recompensa
 recebe -dfam_peso*(viol_t - viol_{t-1}), onde viol e a fracao de elementos
 solidos em violacao da regra de 45 graus para a base de impressao
 dfam_base (mesma metrica de 12_analises_automotivo.py). a soma no episodio
-telescopa para -dfam_peso*(viol_T - viol_0), entao o retorno vira
-k*log(c_0/c_T) - dfam_peso*viol_T (viol_0 e a do dominio inicial), um
-trade-off explicito rigidez x fabricabilidade. isto implementa a
-penalidade de fabricacao prevista nos objetivos do projeto: a regra de
+telescopa para -dfam_peso*(viol_t - viol_0), entao o retorno vira
+k*log(c_0/c_t) - dfam_peso*viol_t (viol_0 e a do dominio inicial), um
+trade-off explicito rigidez x fabricabilidade. a regra de
 45 graus e a de ibhadode et al. (2023) e dangal e jung (2023), que
 tambem medem o custo em compliancia de restringir overhang na ot
 classica; incorporar a restricao como termo de penalidade no objetivo e
@@ -75,14 +73,14 @@ class TopoOptMaskEnv(gym.Env):
                  dfam_peso=0.0, dfam_base="baixo"):
         super().__init__()
 
-        # simetria horizontal opcional (v22; ver docstring do modulo).
-        # None desativa (comportamento v21).
+        # simetria horizontal opcional (ver docstring do modulo).
+        # none desativa.
         assert simetria in (None, "horizontal"), simetria
         self.simetria = simetria
 
-        # recompensa (ver item 2 da docstring do modulo)
-        #   "log_delta" : r_t = reward_scale * log(c_{t-1}/c_t)   [v21, padrao]
-        #   "brown"     : r_t = (c_s/c_t)^2 + (alpha_t/N^2)^2     [v19/v20]
+        # recompensa (ver docstring do modulo)
+        #   "log_delta" : r_t = reward_scale * log(c_{t-1}/c_t)   [padrao]
+        #   "brown"     : r_t = (c_s/c_t)^2 + (alpha_t/n^2)^2     [brown et al. 2022, eq. 4]
         self.reward_scale = float(reward_scale)
         self.deadlock_penalty = float(deadlock_penalty)
         self.reward_mode = reward_mode
@@ -107,7 +105,7 @@ class TopoOptMaskEnv(gym.Env):
         self.thin_threshold = thin_threshold
         self._thin_kernel, self._thin_w1 = self._build_thin_kernel(thin_radius)
 
-        # compliancia = U^T F (Brown et al., 2022)
+        # compliancia = u^t f (brown et al., 2022)
         self.solver = FEMSolverRL(nelx, nely, vol_frac, penal, rmin)
 
         # mascaras passivas (no cantilever ambas ficam vazias)
@@ -116,9 +114,9 @@ class TopoOptMaskEnv(gym.Env):
 
         if problem_type == "automotive":
             self._setup_automotive_bcs()
-        # no cantilever as BCs ja vem do FEMSolverRL
+        # no cantilever as bcs ja vem do femsolverrl
 
-        # alvo de volume e numero de remocoes. Os furos ja nascem vazios, entao a
+        # alvo de volume e numero de remocoes. os furos ja nascem vazios, entao a
         # contagem de remocoes parte dos solidos iniciais (n_elements - n_void).
         self.target_n_solid = int(self.n_elements * vol_frac)
         n_void = int(self.void_mask.sum())
@@ -129,7 +127,7 @@ class TopoOptMaskEnv(gym.Env):
         self.action_space = spaces.Discrete(self.n_elements)
 
         # observacao: 5 canais (densidade, tensao normalizada, posto da
-        # tensao, fixos, carga) — ver item 1 da docstring do modulo
+        # tensao, fixos, carga) (ver docstring do modulo)
         self.observation_space = spaces.Box(
             low=0.0, high=1.0, shape=(5, nely, nelx), dtype=np.float32)
 
@@ -144,25 +142,25 @@ class TopoOptMaskEnv(gym.Env):
 
         if self.simetria == "horizontal":
             # espelho: mesma coluna, linha refletida em torno do centro
-            # vertical. Indice achatado, pre-computado uma vez.
+            # vertical. indice achatado, pre-computado uma vez.
             ely_idx, elx_idx = np.divmod(np.arange(self.n_elements), self.nelx)
             ely_mirror = self.nely - 1 - ely_idx
             self._mirror_flat = ely_mirror * self.nelx + elx_idx
-            # o esquema so faz sentido se as BCs (protegidos) forem
+            # o esquema so faz sentido se as bcs (protegidos) forem
             # simetricas; se nao forem, a mascara ficaria incoerente.
             assert np.array_equal(self._protected_flat,
                                   self._protected_flat[self._mirror_flat]), (
                 "simetria='horizontal' pedida mas a mascara de protegidos "
                 "nao e simetrica para este problem_type/malha")
 
-        # cache da mascara: valida enquanto _mask_dirty for False
+        # cache da mascara: valida enquanto _mask_dirty for false
         self._mask_cache = None
         self._mask_dirty = True
 
     def _setup_automotive_bcs(self):
         # dois furos circulares (parafusos): geometria de referencia 30x30 com
         # furos em (5; 7,5) e (5; 22,5), raio 2, escalada em ponto flutuante.
-        # Deve ser identica a build_bcs() de 10_simp_automotivo.py, senao SIMP
+        # deve ser identica a build_bcs() de 10_simp_automotivo.py, senao simp
         # e agente resolvem pecas diferentes.
         scale = self.nelx / 30.0
         centers = [(5.0 * scale, 7.5 * scale),
@@ -184,10 +182,10 @@ class TopoOptMaskEnv(gym.Env):
                         self.solid_mask[ely, elx] = True
         self.solid_mask &= ~self.void_mask   # o furo tem prioridade sobre o olhal
 
-        # engaste apenas nos nos da interface do furo. O olhal fica com nos livres,
-        # deforma e carrega tensao real, de modo que o canal de von Mises informa o
-        # envoltorio do furo. Fixar todo o disco mataria essa tensao. Tambem evita
-        # nos livres flutuando dentro do furo, que tornariam K singular.
+        # engaste apenas nos nos da interface do furo. o olhal fica com nos livres,
+        # deforma e carrega tensao real, de modo que o canal de von mises informa o
+        # envoltorio do furo. fixar todo o disco mataria essa tensao. tambem evita
+        # nos livres flutuando dentro do furo, que tornariam k singular.
         fixed_nodes = set()
         for ely, elx in np.argwhere(self.void_mask):
             for (cx, cy) in ((elx, ely), (elx + 1, ely),
@@ -207,8 +205,8 @@ class TopoOptMaskEnv(gym.Env):
         self._r_boss = r_boss
 
     def _build_obs_channels(self):
-        # canal 1: elementos com no fixo (Dirichlet); canal 2: elemento carregado.
-        # Refletem o problem_type para nao dar BCs erradas ao agente automotivo.
+        # canal 1: elementos com no fixo (dirichlet); canal 2: elemento carregado.
+        # refletem o problem_type para nao dar bcs erradas ao agente automotivo.
         c1 = np.zeros((self.nely, self.nelx), dtype=np.float32)
         c2 = np.zeros((self.nely, self.nelx), dtype=np.float32)
         mid = self.nely // 2
@@ -249,7 +247,7 @@ class TopoOptMaskEnv(gym.Env):
 
     @staticmethod
     def _build_thin_kernel(radius):
-        """Kernel radial de densidade local (mesma forma de
+        """kernel radial de densidade local (mesma forma de
         precompute_filter()/01_fem_simp.py), normalizado para somar 1, e o
         peso do kernel na distancia unitaria (usado para atualizar a
         densidade local de um vizinho ao remover o elemento central)."""
@@ -261,11 +259,11 @@ class TopoOptMaskEnv(gym.Env):
         return kernel, w1
 
     def _thin_flags(self, solid, candidates):
-        """Para cada candidato a remocao (indice achatado com candidates[i]
-        True), verifica se removê-lo deixaria algum vizinho face a face
-        ainda solido com densidade local abaixo de thin_threshold. Retorna
-        um vetor booleano achatado: True = bloquear (deixaria vizinho fino
-        demais). Ver docstring do modulo."""
+        """para cada candidato a remocao (indice achatado com candidates[i]
+        true), verifica se removê-lo deixaria algum vizinho face a face
+        ainda solido com densidade local abaixo de thin_threshold. retorna
+        um vetor booleano achatado: true = bloquear (deixaria vizinho fino
+        demais). ver docstring do modulo."""
         thin_flat = np.zeros(self.n_elements, dtype=bool)
         if self.thin_threshold <= 0:
             return thin_flat
@@ -312,10 +310,10 @@ class TopoOptMaskEnv(gym.Env):
         return n == 1
 
     def _articulation_flags(self, solid):
-        """Pontos de articulacao do grafo de conectividade-4 dos elementos
-        solidos, por busca em profundidade iterativa (algoritmo de Tarjan).
-        Retorna um vetor booleano achatado: True onde remover o elemento
-        fragmentaria o corpo. Custo O(V+E); equivalente exato ao teste
+        """pontos de articulacao do grafo de conectividade-4 dos elementos
+        solidos, por busca em profundidade iterativa (algoritmo de tarjan).
+        retorna um vetor booleano achatado: true onde remover o elemento
+        fragmentaria o corpo. custo o(v+e); equivalente exato ao teste
         elemento a elemento com scipy.ndimage.label (07_testes_ambiente.py).
         """
         nely, nelx = solid.shape
@@ -385,13 +383,13 @@ class TopoOptMaskEnv(gym.Env):
         return art_flat
 
     def _symmetric_mask(self, solid):
-        """Mascara sob simetria horizontal (v22): candidato i so e valido se
+        """mascara sob simetria horizontal: candidato i so e valido se
         remover {i, mirror(i)} juntos preservar um unico componente conexo.
-        Bruteforce por candidato (scipy.ndimage.label a cada um) — O(N)
+        bruteforce por candidato (scipy.ndimage.label a cada um) — o(n)
         rotulagens por passo, mais caro que o metodo de pontos de
         articulacao, mas o cantilever (200 elementos) roda isso sem custo
         perceptivel. i == mirror(i) so ocorre com nely impar (nao usado
-        neste TCC); tratado mesmo assim por completude."""
+        neste tcc); tratado mesmo assim por completude."""
         solid_flat = solid.flatten()
         base_ok = solid_flat & ~self._protected_flat
         ok = np.zeros(self.n_elements, dtype=bool)
@@ -409,12 +407,12 @@ class TopoOptMaskEnv(gym.Env):
         return ok
 
     def get_action_mask(self):
-        """Hard action masking de conectividade (Huang e Ontanon, 2022; Hong
+        """hard action masking de conectividade (huang e ontanon, 2022; hong
         et al., 2025), de espessura minima (ver docstring do
-        modulo) e, opcionalmente, de simetria horizontal (v22): valido = solido, nao protegido, nao
+        modulo) e, opcionalmente, de simetria horizontal: valido = solido, nao protegido, nao
         ponto de articulacao (ou par-de-espelhos nao articulador, sob
         simetria), e nao deixa vizinho abaixo da densidade local minima.
-        Cacheado por estado (no maximo um calculo por passo)."""
+        cacheado por estado (no maximo um calculo por passo)."""
         if not self._mask_dirty and self._mask_cache is not None:
             return self._mask_cache
 
@@ -441,9 +439,9 @@ class TopoOptMaskEnv(gym.Env):
         return mask
 
     def _get_action_mask_bruteforce(self):
-        """Referencia O(N) por scipy.ndimage.label + convolucao recalculada
+        """referencia o(n) por scipy.ndimage.label + convolucao recalculada
         do zero a cada candidato (mais lenta, mas obviamente correta).
-        Usada apenas para verificar a equivalencia com get_action_mask() em
+        usada apenas para verificar a equivalencia com get_action_mask() em
         07_testes_ambiente.py; nao usar em treino."""
         mask = np.ones(self.n_elements, dtype=np.float32)
         density_flat = self.density.flatten()
@@ -499,7 +497,7 @@ class TopoOptMaskEnv(gym.Env):
         elx = action % self.nelx
 
         # rede de seguranca: a mascara deve impedir chegar aqui com acao invalida.
-        # Se acontecer, e falha do wrapper; penaliza e encerra.
+        # se acontecer, e falha do wrapper; penaliza e encerra.
         if self.density[ely, elx] < 0.5 or self.protected_mask[ely, elx]:
             return self._get_obs(), -self.deadlock_penalty, True, False, {
                 "compliance": self.current_compliance,
@@ -509,11 +507,11 @@ class TopoOptMaskEnv(gym.Env):
                 "deadlock": False,
             }
 
-        # remocao valida (a mascara ja garantiu conectividade): E_e de 1 para 1e-4
+        # remocao valida (a mascara ja garantiu conectividade): e_e de 1 para 1e-4
         self.density[ely, elx] = 1e-4
         self.n_removed += 1
         if self.simetria == "horizontal":
-            # remove tambem o espelho na MESMA transicao (um so solve de MEF
+            # remove tambem o espelho na mesma transicao (um so solve de mef
             # para o par) — a mascara ja garantiu que o par preserva
             # conectividade. j == action so com nely impar (nao usado aqui).
             j = int(self._mirror_flat[action])
@@ -535,16 +533,16 @@ class TopoOptMaskEnv(gym.Env):
                 "deadlock": False,
             }
 
-        # recompensa (ver item 2 da docstring do modulo)
+        # recompensa (ver docstring do modulo)
         c_prev = max(float(self.current_compliance), 1e-12)
         c_t = max(float(new_compliance), 1e-12)
         if self.reward_mode == "brown":
-            # forma original de Brown et al. (2022), Eq. 4 — mantida para
-            # reproduzir as rodadas v19/v20
+            # forma original de brown et al. (2022), eq. 4 — mantida para
+            # reproduzir a recompensa original
             reward = ((self.initial_compliance / c_t) ** 2
                       + (self.n_removed / self.n_elements) ** 2)
         else:
-            # telescopica: a soma no episodio = reward_scale*log(c_0/c_T)
+            # telescopica: a soma no episodio = reward_scale*log(c_0/c_t)
             reward = self.reward_scale * float(np.log(c_prev / c_t))
             if not np.isfinite(reward):
                 reward = -self.deadlock_penalty
@@ -558,16 +556,16 @@ class TopoOptMaskEnv(gym.Env):
         done = self.n_removed >= self.n_to_remove
         deadlock = False
         if not done:
-            # terminacao por deadlock: se nenhuma acao valida restar antes do VF
-            # alvo, encerra de forma limpa em vez de deixar o MaskablePPO
-            # amostrar de uma distribuicao vazia (NaN). A mascara calculada
+            # terminacao por deadlock: se nenhuma acao valida restar antes do vf
+            # alvo, encerra de forma limpa em vez de deixar o maskableppo
+            # amostrar de uma distribuicao vazia (nan). a mascara calculada
             # aqui fica em cache e e reaproveitada pelo wrapper no proximo
             # estado, sem custo extra.
             if float(self.get_action_mask().sum()) == 0.0:
                 done = True
                 deadlock = True
                 if self.reward_mode != "brown":
-                    # o VF alvo nao foi atingido: projeto inviavel. Penaliza
+                    # o vf alvo nao foi atingido: projeto inviavel. penaliza
                     # proporcionalmente as remocoes que faltaram, em vez de
                     # deixar o episodio curto parecer barato.
                     faltam = max(self.n_to_remove - self.n_removed, 0)
@@ -588,12 +586,12 @@ class TopoOptMaskEnv(gym.Env):
         return self._get_obs(), reward, done, False, info
 
     def _get_obs(self):
-        """Cinco canais; ver item 1 da docstring do modulo.
+        """cinco canais; ver docstring do modulo.
 
         c0 densidade binaria
         c1 tensao normalizada pelo percentil 99 dos solidos, clipada [0,1]
         c2 posto normalizado da tensao entre os solidos, em [0,1]
-           (argmin de c2 entre as acoes validas = politica gulosa ESO)
+           (argmin de c2 entre as acoes validas = politica gulosa eso)
         c3 elementos com no engastado
         c4 elemento carregado
         """
@@ -624,7 +622,7 @@ class TopoOptMaskEnv(gym.Env):
 
 
 def nucleo_conico(raio):
-    """Mesmo nucleo w(d) = max(0, rmin - d) de precompute_filter(),
+    """mesmo nucleo w(d) = max(0, rmin - d) de precompute_filter(),
     normalizado para somar 1."""
     r = int(np.ceil(raio))
     yy, xx = np.meshgrid(np.arange(-r, r + 1), np.arange(-r, r + 1), indexing="ij")
@@ -635,9 +633,9 @@ def nucleo_conico(raio):
 def rodar_guloso(nelx=30, nely=30, vol_frac=0.3, problem_type="automotive",
                  raio_filtro=1.5, seed=0, thin_threshold=0.0, simetria=None,
                  verbose=True):
-    """Episodio guloso: remove sempre o elemento valido de menor tensao (sob
+    """episodio guloso: remove sempre o elemento valido de menor tensao (sob
     simetria horizontal, o par elemento+espelho de menor tensao combinada;
-    ver docstring de este modulo, v22)."""
+    ver docstring do modulo)."""
     env = TopoOptMaskEnv(nelx=nelx, nely=nely, vol_frac=vol_frac,
                          problem_type=problem_type,
                          thin_threshold=thin_threshold, simetria=simetria)
@@ -655,7 +653,7 @@ def rodar_guloso(nelx=30, nely=30, vol_frac=0.3, problem_type="automotive",
             campo = scipy.ndimage.convolve(campo, K, mode="nearest")
         campo_flat = campo.flatten()
         if simetria == "horizontal":
-            # custo do PAR (elemento + espelho), nao so do elemento: a acao
+            # custo do par (elemento + espelho), nao so do elemento: a acao
             # sempre remove os dois juntos, entao o criterio guloso certo e
             # a tensao combinada do par, nao a do elemento isolado.
             custo = campo_flat[validas] + campo_flat[env._mirror_flat[validas]]

@@ -13,8 +13,8 @@ import sys
 import time
 from importlib.util import spec_from_file_location, module_from_spec
 
-# os checkpoints de Brown foram salvos com o otimizador legado do Keras; em
-# TF >= 2.11 o Adam padrao mudou, entao forcamos o legado antes de carregar o modelo
+# os checkpoints de brown foram salvos com o otimizador legado do keras; em
+# tf >= 2.11 o adam padrao mudou, entao forcamos o legado antes de carregar o modelo
 os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
 import tensorflow as tf
 tf.keras.optimizers.Adam = tf.keras.optimizers.legacy.Adam
@@ -34,7 +34,7 @@ from scipy.ndimage import convolve
 
 # --- fonte casada com o corpo do texto -------------------------------------
 LARGURA_FIG_POL = 13.0        # largura do figsize deste script
-LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do USPSC (A4, margens 3 cm / 2 cm)
+LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do uspsc (a4, margens 3 cm / 2 cm)
 _ESC = LARGURA_FIG_POL / LARGURA_MANCHA_POL
 def _pt(p): return p * _ESC   # pt desejado na pagina -> pt no matplotlib
 
@@ -64,7 +64,7 @@ from Top_Opt_RL.DQN.opts import parse_opts
 from Top_Opt_RL.DQN.main import EnviromentsRL, TopOpt_Designing
 from Top_Opt_RL.DQN.FEA_SOLVER_GENERAL import FEASolve
 
-# casos de teste no formato do ambiente de Brown (2022)
+# casos de teste no formato do ambiente de brown (2022)
 TEST_CASES = {
     "1_Cantilever": {"bcs": [1, 553],             "downs": [312],        "vol": 0.35},
     "2_Ponte":      {"bcs": [552, 553, 574, 575], "downs": [11, 12, 13], "vol": 0.40},
@@ -83,10 +83,10 @@ except FileNotFoundError:
 
 
 def surrogate_patch_func(void_check, lx, ly, ex, ey, lc_nodes, load_dirs, bc_nodes, Stress=True):
-    """Substitui o solver de Brown pela CNN apenas na malha fina (576 elementos).
+    """substitui o solver de brown pela cnn apenas na malha fina (576 elementos).
 
-    A CNN preve a compliancia escalar; os campos de tensao sao devolvidos
-    constantes, pois a CNN nao os preve.
+    a cnn preve a compliancia escalar; os campos de tensao sao devolvidos
+    constantes, pois a cnn nao os preve.
     """
     if len(void_check) == 576:
         # tensor (1, 3, 24, 24): canal 0 densidade, canais 1 e 2 (forca) zerados
@@ -113,7 +113,7 @@ def get_xy_from_brown(idx_1based):
 
 
 def run_simp(name, config):
-    """Baseline SIMP na malha 24x24 para o caso dado."""
+    """baseline simp na malha 24x24 para o caso dado."""
     print(f"  [SIMP] {name}...")
     nelx, nely = 24, 24
     volfrac = config["vol"]
@@ -168,7 +168,7 @@ def run_simp(name, config):
 
 
 def run_brown(config, use_surrogate):
-    """Roda o agente de Brown no caso dado e devolve (topologia, tempo)."""
+    """roda o agente de brown no caso dado e devolve (topologia, tempo)."""
     label = "SURROGATE CNN" if use_surrogate else "ORIGINAL"
     print(f"  [Brown {label}]...")
     full_conf = {
@@ -206,11 +206,8 @@ if __name__ == "__main__":
     _OUT = os.path.join(_HERE, "resultados", "04_benchmark_brown_surrogate.png")
     os.makedirs(os.path.dirname(_OUT), exist_ok=True)
 
-    # titulos e rotulo de speedup encurtados (2026-09-22): com 3 colunas cada
-    # painel tem so LARGURA_MANCHA_POL/3 = 2.1 pol. de pagina em fonte real de
-    # 12pt (mesmo problema geometrico de 11/12_robustez/12_dfam) - "DQN +
-    # Substituto CNN" e "Speedup (malha 24×24): 21.4×" nao cabem e vazavam
-    # para fora da figura.
+    # titulos e rotulo de speedup curtos: com 3 colunas cada painel tem so
+    # largura_mancha_pol/3 = 2.1 pol. de pagina em fonte real de 12 pt
     nc = len(TEST_CASES)
     fig, axs = plt.subplots(nc, 3, figsize=(13, 4 * nc))
     titles = ["SIMP", "DQN (ref.)", "DQN+CNN"]
@@ -221,10 +218,8 @@ if __name__ == "__main__":
         r_orig, t_orig = run_brown(config, use_surrogate=False)
         r_surr, t_surr = run_brown(config, use_surrogate=True)
 
-        # arredonda os tempos ANTES de calcular o speedup (2026-09-22): antes o
-        # rotulo mostrava os segundos arredondados mas o "Speedup" vinha da
-        # divisao com precisao total, entao a conta feita a mao a partir do que
-        # esta impresso na figura nao fechava (ex.: 81.0/3.9 = 20.8, nao 20.9).
+        # arredonda os tempos antes de calcular o speedup, para o rotulo bater
+        # com a conta feita a mao a partir dos tempos impressos na figura
         t_orig_r, t_surr_r = round(t_orig, 1), round(t_surr, 1)
         nome_limpo = f"({row + 1}) {name.split('_', 1)[1]}"  # sem underscore literal
         resultados = [
@@ -251,10 +246,6 @@ if __name__ == "__main__":
     for col, tit in enumerate(titles):
         axs[0, col].set_title(f"{tit}\n{axs[0, col].get_title()}", fontsize=_pt(12))
 
-    # titulo geral comentado (2026-09-21): redundante com a legenda do LaTeX.
-    # fig.suptitle("Comparação de Topologias e Tempos de Execução — Malha 24×24\n"
-    #              "SIMP vs. DQN (referência) vs. DQN + Substituto CNN | 3 casos estruturais",
-    #              fontsize=13, y=1.01)
     fig.tight_layout()
     fig.savefig(_OUT)
     plt.close(fig)

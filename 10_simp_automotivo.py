@@ -45,7 +45,7 @@ os.makedirs(_OUTDIR, exist_ok=True)
 
 # --- fonte casada com o corpo do texto -------------------------------------
 LARGURA_FIG_POL = 13.0        # largura do figsize deste script
-LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do USPSC (A4, margens 3 cm / 2 cm)
+LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do uspsc (a4, margens 3 cm / 2 cm)
 _ESC = LARGURA_FIG_POL / LARGURA_MANCHA_POL
 def _pt(p): return p * _ESC   # pt desejado na pagina -> pt no matplotlib
 
@@ -73,7 +73,7 @@ def _spines(ax):
 def build_bcs(nelx, nely, centers=None, r_hole=None,
               load_angle_deg=0.0, load_scale=1.0, load_shift=0):
     """bcs automotivas parametrizaveis. nominal: geometria de referencia 30x30
-    (furos em (5; 7,5) e (5; 22,5), raio 2, olhal de espessura RING), escalada
+    (furos em (5; 7,5) e (5; 22,5), raio 2, olhal de espessura ring), escalada
     em ponto flutuante para a malha atual, de modo que 30x30, 60x60 e 90x90
     representem a mesma peca fisica, simetrica em torno de y = nely/2; carga
     horizontal de tracao no meio da aresta direita (angulo 0 = direcao nominal)."""
@@ -233,9 +233,6 @@ def baseline():
         ax.set_yticks([])
         _spines(ax)
 
-    # titulo geral comentado (2026-09-21): redundante com a legenda do LaTeX.
-    # fig.suptitle(rf"SIMP — Suporte {NELX}$\times${NELY}"
-    #              "\nTopologia e campo de tensão de von Mises", fontsize=12, y=1.03)
     fig.tight_layout()
     out = os.path.join(_OUTDIR, "10_simp_automotivo.png")
     fig.savefig(out)
@@ -246,9 +243,8 @@ def baseline():
 
 def ablacao():
     """seis configuracoes: rmin, fracao de volume e controle sem furos.
-    ordem sistematica (2026-09-22, resposta a critica de banca sobre series
-    entrelacadas): linha 1 = volume crescente (rmin fixo), linha 2 = rmin
-    crescente (volume fixo) + controle."""
+    ordem sistematica: linha 1 = volume crescente (rmin fixo), linha 2 =
+    rmin crescente (volume fixo) + controle."""
     configs = [
         {"label": "$r_{\\min}=1{,}5$\n$V=20\\%$",            "vol": 0.2, "rmin": 1.5, "furos": True},
         {"label": "$r_{\\min}=1{,}5$\n$V=30\\%$ (referência)", "vol": 0.3, "rmin": 1.5, "furos": True},
@@ -277,10 +273,6 @@ def ablacao():
         ax.set_yticks([])
         _spines(ax)
 
-    # titulo geral comentado (2026-09-21): redundante com a legenda do LaTeX.
-    # fig.suptitle(f"Estudo de Ablação — Suporte {NELX}$\\times${NELY}\n"
-    #              "Efeito do filtro de sensibilidade ($r_{\\min}$) e da fração de volume",
-    #              fontsize=13, y=1.01)
     out = os.path.join(_OUTDIR, "10_ablacao_automotivo.png")
     fig.savefig(out)
     plt.close(fig)

@@ -28,8 +28,8 @@ TopoOptMaskEnv = _m.TopoOptMaskEnv
 
 
 def _random_state(env, rng, n_remove):
-    """Leva o env a um estado conexo aleatorio removendo via mascara (sem
-    reavaliar o MEF a cada passo — so a topologia importa para este teste)."""
+    """leva o env a um estado conexo aleatorio removendo via mascara (sem
+    reavaliar o mef a cada passo — so a topologia importa para este teste)."""
     env.reset(seed=int(rng.integers(1e9)))
     for _ in range(n_remove):
         mask = env.get_action_mask()
@@ -83,10 +83,10 @@ def _rollout_aleatorio(nx, ny, vf, ptype, thin_threshold, seed):
 
 
 def test_espessura_minima():
-    """Documenta (e protege contra regressao de) o diagnostico v21: sob
-    politica aleatoria e MESMA semente, thin_threshold in {0.0, 0.30, 0.45}
-    devem produzir a MESMA compliancia final (a restricao nunca vincula
-    nessa faixa), e 0.60 deve vincular e produzir deadlock. Ver item 3 da
+    """documenta (e protege contra regressao de) o diagnostico da restricao de espessura: sob
+    politica aleatoria e mesma semente, thin_threshold in {0.0, 0.30, 0.45}
+    devem produzir a mesma compliancia final (a restricao nunca vincula
+    nessa faixa), e 0.60 deve vincular e produzir deadlock. ver a
     docstring de 05_ambiente_rl.py — a restricao fica desligada por
     padrao exatamente por causa disto."""
     for (ptype, nx, ny, vf) in [("cantilever", 20, 10, 0.5),
@@ -98,7 +98,7 @@ def test_espessura_minima():
                 f"thin_threshold={th} mudou a trajetoria em {ptype} {nx}x{ny} "
                 f"(C={c:.2f} vs base {c_base:.2f}) — a restricao deixou de "
                 f"estar inerte nessa faixa; reavaliar o valor default (0.0) "
-                f"e a docstring de 05_ambiente_rl.py, item 3")
+                f"e a docstring de 05_ambiente_rl.py")
         c_bind, dl_bind = _rollout_aleatorio(nx, ny, vf, ptype, 0.60, seed=0)
         assert dl_bind, (
             f"thin_threshold=0.60 nao vinculou em {ptype} {nx}x{ny} "
@@ -109,19 +109,14 @@ def test_espessura_minima():
 
 
 def test_simetria_horizontal(n_episodios=8):
-    """v22: sob simetria='horizontal' no cantilever, episodios aleatorios
+    """sob simetria='horizontal' no cantilever, episodios aleatorios
     completos mantem densidade simetrica e um unico componente conexo em
-    TODO passo (nao so no final), e a mascara bate contra uma verificacao
+    todo passo (nao so no final), e a mascara bate contra uma verificacao
     independente (label apos remover o par elemento+espelho, por forca
-    bruta). Tambem confere que o assert de BCs simetricas dispara para o
-    automotivo (furos assimetricos por arredondamento, ver 05b, item de
-    simetria)."""
-    try:
-        TopoOptMaskEnv(nelx=30, nely=30, vol_frac=0.3, problem_type="automotive",
-                       simetria="horizontal")
-        raise AssertionError("deveria ter disparado AssertionError para automotivo")
-    except AssertionError as e:
-        assert "simetria" in str(e), f"assert errado disparou: {e}"
+    bruta). tambem confere que o assert de bcs simetricas nao dispara para o
+    automotivo (furos simetricos em torno de y = nely/2)."""
+    TopoOptMaskEnv(nelx=30, nely=30, vol_frac=0.3, problem_type="automotive",
+                   simetria="horizontal")
 
     struct = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
     n_ok = 0
@@ -184,7 +179,7 @@ def test_simetria_horizontal(n_episodios=8):
 
 
 def test_dfam():
-    """penalidade de overhang: com peso 0 nada muda; com peso > 0 a MESMA
+    """penalidade de overhang: com peso 0 nada muda; com peso > 0 a mesma
     trajetoria (mesma semente; a mascara nao depende do dfam) tem retorno
     deslocado por exatamente -peso*(viol_final - viol_inicial)."""
     def _rollout(peso, seed=3):
@@ -220,8 +215,8 @@ def test_dfam():
 
 
 def test_v21_politica_fcn_smoke():
-    """TopoFCNPolicy (06) constroi, treina alguns milhares de
-    passos com MaskablePPO e salva/recarrega sem erro — a mesma politica
+    """topofcnpolicy (06) constroi, treina alguns milhares de
+    passos com maskableppo e salva/recarrega sem erro — a mesma politica
     usada por 08_treinar_ppo.py."""
     from sb3_contrib import MaskablePPO
     from sb3_contrib.common.wrappers import ActionMasker
@@ -279,7 +274,7 @@ def test_cache():
 def test_deadlock():
     env = TopoOptMaskEnv(nelx=20, nely=10, vol_frac=0.5)
     env.reset(seed=0)
-    # estado artificial: barra horizontal 1xN (todo elemento interno e ponto
+    # estado artificial: barra horizontal 1xn (todo elemento interno e ponto
     # de articulacao) -> a mascara esvazia rapido apos remover as pontas
     env.density[:] = 1e-4
     env.density[env.nely // 2, :] = 1.0
@@ -311,11 +306,28 @@ def test_smoke_treino():
     _tm = module_from_spec(_t)
     _t.loader.exec_module(_tm)
 
+    # o teste nao deve deixar saida em resultados/: remove so o que ele criou
+    import shutil
+    run = "v21_cantilever_12x6_seed7"
+    pais = [os.path.join(_DIR, "resultados", sub) for sub in ("dados", "logs")]
+    pastas = [os.path.join(p, run) for p in pais]
+    existiam = [os.path.exists(p) for p in pastas]
+
     t0 = time.time()
-    _tm.train(nelx=12, nely=6, vol_frac=0.5, total_timesteps=2_000,
-              n_envs=1, seed=7, problem_type="cantilever",
-              n_steps=64, batch_size=64, n_epochs=2,
-              eval_freq=10_000_000)
+    try:
+        _tm.train(nelx=12, nely=6, vol_frac=0.5, total_timesteps=2_000,
+                  n_envs=1, seed=7, problem_type="cantilever",
+                  n_steps=64, batch_size=64, n_epochs=2,
+                  eval_freq=10_000_000)
+    finally:
+        for p, existia in zip(pastas, existiam):
+            if not existia:
+                shutil.rmtree(p, ignore_errors=True)
+        for p in pais:
+            try:
+                os.rmdir(p)          # so remove se ficou vazia
+            except OSError:
+                pass
     print(f"[OK] fumaca de treino MaskablePPO (2k passos, {time.time()-t0:.0f}s)")
 
 

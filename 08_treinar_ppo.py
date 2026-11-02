@@ -5,21 +5,24 @@ recompensa telescopica com gamma=1.0, n_steps automatico cobrindo o
 episodio inteiro com folga, batch 1024, 4 epocas, ent_coef 3e-3 (recalibrado
 para ~900 acoes). callback salva best_model.zip pela menor compliancia num
 episodio greedy deterministico. --resume restaura pesos com protecao contra
-o _setup_model do sb3 (que recriaria a politica do zero em silencio) e
+o _setup_model do sb3 (que recriaria a politica do zero sem aviso) e
 imprime o c_greedy do checkpoint carregado antes de gastar horas de treino.
 --simetria horizontal remove pares elemento+espelho (usado no cantilever).
 --dfam_peso ativa a penalidade de overhang do ambiente (ver 05); variacoes
 de seed e de dfam salvam em diretorios com sufixo, preservando o canonico.
+ao fim do treino os checkpoints periodicos (a cada 10% dos passos) sao apagados:
+so servem para --resume de um treino interrompido (--manter_checkpoints os preserva).
 
 resultados de referencia deste tcc (treino do zero, seed 42):
-    cantilever 20x10 vf=0.50 --simetria horizontal, 1.5m passos (C = 70.85)
-    automotivo 30x30 vf=0.30, 3m passos (C = 20.32; sementes 7/13/21/42/99:
+    cantilever 20x10 vf=0.50 --simetria horizontal, 1.5m passos (c = 70.85)
+    automotivo 30x30 vf=0.30, 3m passos (c = 20.32; sementes 7/13/21/42/99:
     20.33 +- 0.03)
 """
 
 import os
 import sys
 import time
+import glob
 import argparse
 
 import numpy as np
@@ -51,25 +54,14 @@ _spec_pol.loader.exec_module(_pol_mod)
 TopoFCNPolicy = _pol_mod.TopoFCNPolicy
 fcn_policy_kwargs = _pol_mod.fcn_policy_kwargs
 
-try:                       # o SB3 quebra se tensorboard_log apontar para um
-    import tensorboard     # diretorio sem o tensorboard instalado
-    _TB = True
-except ImportError:
-    _TB = False
-    print("aviso: tensorboard nao instalado; logs de tensorboard desligados")
-
-
-def _tb(log_dir):
-    return log_dir if _TB else None
-
 
 class MonitorCallback(BaseCallback):
-    """Imprime recompensa, comprimento de episodio e KL ao longo do treino.
+    """imprime recompensa, comprimento de episodio e kl ao longo do treino.
 
-    Com a recompensa telescopica, ep_rew e interpretavel diretamente:
-    ep_rew = reward_scale*log(c_0/c_T), menos a penalidade de deadlock. Com
-    reward_scale=10 e c_0 = 7.68 no caso automotivo, C = 20.8 corresponde a
-    ep_rew ~ -10.0 e C = 93.5 a ep_rew ~ -25.0. Quanto MAIOR (menos
+    com a recompensa telescopica, ep_rew e interpretavel diretamente:
+    ep_rew = reward_scale*log(c_0/c_t), menos a penalidade de deadlock. com
+    reward_scale=10 e c_0 = 7.66 no caso automotivo, c = 20.8 corresponde a
+    ep_rew ~ -10.0 e c = 93.5 a ep_rew ~ -25.0. quanto maior (menos
     negativo), melhor.
     """
 
@@ -96,7 +88,7 @@ class MonitorCallback(BaseCallback):
 
 
 class MelhorPorCompliancia(BaseCallback):
-    """Salva best_model.zip pelo criterio que interessa: menor compliancia num
+    """salva best_model.zip pelo criterio que interessa: menor compliancia num
     episodio greedy deterministico, avaliado periodicamente."""
 
     def __init__(self, nelx, nely, vol_frac, problem_type, mod_dir,
@@ -108,7 +100,7 @@ class MelhorPorCompliancia(BaseCallback):
         self.mod_dir = mod_dir
         self.eval_freq = eval_freq
         self.simetria = simetria
-        # ao retomar um checkpoint, parte-se da compliancia DELE: senao o
+        # ao retomar um checkpoint, parte-se da compliancia dele: senao o
         # callback sobrescreve um best_model melhor com a primeira avaliacao
         # que fizer, so porque comecou em infinito
         self.melhor = float(melhor_inicial)
@@ -145,7 +137,7 @@ class MelhorPorCompliancia(BaseCallback):
 
 def _avaliar_greedy(model, nelx, nely, vol_frac, problem_type, seed=0,
                     simetria=None):
-    """Um episodio greedy deterministico. Usado tanto pelo callback de melhor
+    """um episodio greedy deterministico. usado tanto pelo callback de melhor
     modelo quanto pela verificacao de sanidade logo apos um --resume."""
     env = TopoOptMaskEnv(nelx=nelx, nely=nely, vol_frac=vol_frac,
                          problem_type=problem_type, simetria=simetria)
@@ -189,11 +181,11 @@ def build_vec_env(nelx, nely, vol_frac, n_envs, log_dir,
     return VecMonitor(vec, filename=os.path.join(log_dir, "treino"))
 
 
-def new_model(env, log_dir, seed, nelx, nely, n_steps=768, gamma=1.0,
+def new_model(env, seed, nelx, nely, n_steps=768, gamma=1.0,
               batch_size=1024, n_epochs=4, ent_coef=3e-3, lr=3e-4,
               clip_range=0.2, target_kl=None):
-    """MaskablePPO com a politica totalmente convolucional; ver itens 1 e 3 da
-    docstring do modulo para o porque de cada desvio em relacao a v19."""
+    """maskableppo com a politica totalmente convolucional; ver a
+    docstring do modulo."""
     return MaskablePPO(
         TopoFCNPolicy, env,
         policy_kwargs=fcn_policy_kwargs(nelx, nely),
@@ -209,13 +201,12 @@ def new_model(env, log_dir, seed, nelx, nely, n_steps=768, gamma=1.0,
         ent_coef=ent_coef,
         vf_coef=0.5,
         max_grad_norm=0.5,
-        tensorboard_log=_tb(log_dir),
         device="auto",
         seed=seed,
     )
 
 
-def load_model(resume, env, log_dir, lr=3e-4, ent_coef=None, n_steps=None,
+def load_model(resume, env, lr=3e-4, ent_coef=None, n_steps=None,
                batch_size=None, n_epochs=None, gamma=None,
                clip_range=0.2, target_kl=None):
     """retoma um checkpoint sobrescrevendo os hiperparametros de rollout."""
@@ -224,7 +215,7 @@ def load_model(resume, env, log_dir, lr=3e-4, ent_coef=None, n_steps=None,
         "clip_range": lambda _: clip_range,
     }
     model = MaskablePPO.load(resume, env=env, custom_objects=custom_objects,
-                             device="auto", tensorboard_log=_tb(log_dir))
+                             device="auto")
     model.set_env(env)
     if ent_coef is not None:
         print(f"  ent_coef: {model.ent_coef} -> {ent_coef}")
@@ -235,9 +226,9 @@ def load_model(resume, env, log_dir, lr=3e-4, ent_coef=None, n_steps=None,
     if n_steps is not None and n_steps != model.n_steps:
         print(f"  n_steps: {model.n_steps} -> {n_steps}")
         # atencao: _setup_model() do sb3 recria self.policy do zero, o que
-        # apagaria em silencio os pesos recem-carregados (o treino seguiria
+        # apagaria sem aviso os pesos recem-carregados (o treino seguiria
         # a partir de pesos aleatorios). salva e restaura o state_dict em
-        # volta da chamada; o otimizador e reiniciado de proposito.
+        # volta da chamada; o otimizador e reiniciado.
         estado = {k: v.clone() for k, v in model.policy.state_dict().items()}
         model.n_steps = n_steps
         model._setup_model()
@@ -256,7 +247,7 @@ def train_phase(nelx, nely, vol_frac, total_timesteps, n_envs, seed,
                 thin_threshold=0.0, problem_type="automotive",
                 reward_mode="log_delta", reward_scale=10.0,
                 deadlock_penalty=10.0, eval_freq=200_000, simetria=None,
-                dfam_peso=0.0, dfam_base="baixo"):
+                dfam_peso=0.0, dfam_base="baixo", manter_checkpoints=False):
     log_dir = os.path.join(_DIR, "resultados", "logs", run_name)
     mod_dir = os.path.join(_DIR, "resultados", "dados", run_name)
     os.makedirs(log_dir, exist_ok=True)
@@ -270,7 +261,7 @@ def train_phase(nelx, nely, vol_frac, total_timesteps, n_envs, seed,
                         dfam_peso=dfam_peso, dfam_base=dfam_base)
     if resume:
         print(f"  retomando de: {resume}")
-        model = load_model(resume, env, log_dir, lr=lr, ent_coef=ent_coef,
+        model = load_model(resume, env, lr=lr, ent_coef=ent_coef,
                            n_steps=n_steps, batch_size=batch_size,
                            n_epochs=n_epochs, gamma=gamma,
                            clip_range=clip_range, target_kl=target_kl)
@@ -280,7 +271,7 @@ def train_phase(nelx, nely, vol_frac, total_timesteps, n_envs, seed,
                              simetria=simetria)
         print(f"  checkpoint carregado: C_greedy = {c0:.4f}")
     else:
-        model = new_model(env, log_dir, seed, nelx, nely, n_steps=n_steps,
+        model = new_model(env, seed, nelx, nely, n_steps=n_steps,
                           gamma=gamma, batch_size=batch_size,
                           n_epochs=n_epochs, ent_coef=ent_coef, lr=lr,
                           clip_range=clip_range, target_kl=target_kl)
@@ -301,25 +292,28 @@ def train_phase(nelx, nely, vol_frac, total_timesteps, n_envs, seed,
     final_path = os.path.join(mod_dir, f"{name_prefix}_final")
     model.save(final_path)
     env.close()
+    if not manter_checkpoints:
+        for f in glob.glob(os.path.join(mod_dir, f"{name_prefix}_*_steps.zip")):
+            os.remove(f)
     return final_path
 
 
-# Referencias medidas no mesmo espaco de acoes do agente, uma execucao
+# referencias medidas no mesmo espaco de acoes do agente, uma execucao
 # deterministica cada, semente 0:
-#   (SIMP binarizado, melhor politica gulosa, raio de filtro desse professor)
-# O raio otimo do professor NAO e o mesmo nos dois casos: em 30x30 o filtro
-# rmin=1.5 melhora o guloso (22.78 -> 20.82 na geometria anterior a 2026-10; 20.42 com os furos simetricos), mas em 20x10 ele piora
+#   (simp binarizado, melhor politica gulosa, raio de filtro dessa referencia)
+# o raio otimo da referencia nao e o mesmo nos dois casos: em 30x30 o filtro
+# rmin=1.5 leva o guloso a c = 20.42, mas em 20x10 ele piora
 # (71.66 -> 82.45), porque o nucleo borra o campo numa fracao grande dos 10
 # elementos de altura do dominio e o argmin perde discriminacao.
 REFERENCIAS = {
     ("automotive", 30, 30, 0.30): (20.72, 20.42, 1.5),
-    ("cantilever", 20, 10, 0.50): (67.31, 71.66, 0.0),
+    ("cantilever", 20, 10, 0.50): (66.75, 71.66, 0.0),
 }
-# com simetria horizontal (v22): o par elemento+espelho e mais restritivo,
+# com simetria horizontal: o par elemento+espelho e mais restritivo,
 # o filtro inverte de papel (ajuda em vez de atrapalhar) — ver
 # 05_ambiente_rl.py (rodar_guloso)
 REFERENCIAS_SIMETRIA = {
-    ("cantilever", 20, 10, 0.50): (67.31, 78.90, 1.5),
+    ("cantilever", 20, 10, 0.50): (66.75, 78.90, 1.5),
 }
 
 
@@ -334,7 +328,7 @@ def train(nelx=30, nely=30, vol_frac=0.3, total_timesteps=3_000_000,
     if kw.get("dfam_peso", 0.0) > 0.0:
         run_name += f"_dfam{kw['dfam_peso']:g}"
     print("=" * 70)
-    print(f"  PPO v21 — HARD ACTION MASKING + POLITICA FCN — {tag.capitalize()}")
+    print(f"  PPO — HARD ACTION MASKING + POLITICA FCN — {tag.capitalize()}")
     print(f"  Malha: {nelx}x{nely} | VF: {vol_frac} | Steps: {total_timesteps:,}")
     print(f"  n_envs {n_envs} | n_steps {kw.get('n_steps')} | "
           f"gamma {kw.get('gamma')} | batch {kw.get('batch_size')} | "
@@ -344,13 +338,13 @@ def train(nelx=30, nely=30, vol_frac=0.3, total_timesteps=3_000_000,
     if kw.get("dfam_peso", 0.0) > 0.0:
         print(f"  penalidade dfam: peso {kw['dfam_peso']:g} | "
               f"base {kw.get('dfam_base')}")
-    # referencias medidas no MESMO espaco de acoes (ver 05_ambiente_rl.py (rodar_guloso))
+    # referencias medidas no mesmo espaco de acoes (ver 05_ambiente_rl.py (rodar_guloso))
     tabela_ref = (REFERENCIAS_SIMETRIA if kw.get("simetria") == "horizontal"
                  else REFERENCIAS)
     ref = tabela_ref.get((problem_type, nelx, nely, round(vol_frac, 2)))
     if ref:
         print(f"  referencias: SIMP binarizado C={ref[0]:.2f} | "
-              f"melhor guloso C={ref[1]:.2f} (professor com filtro rmin={ref[2]})")
+              f"melhor guloso C={ref[1]:.2f} (guloso com filtro rmin={ref[2]})")
     print("=" * 70)
     t0 = time.time()
     final = train_phase(nelx, nely, vol_frac, total_timesteps, n_envs, seed,
@@ -365,13 +359,13 @@ def train(nelx=30, nely=30, vol_frac=0.3, total_timesteps=3_000_000,
 def train_curriculum(nelx=30, nely=30, vf_schedule=(0.60, 0.45, 0.30),
                      steps_per_phase=(1_000_000, 1_000_000, 4_000_000),
                      n_envs=32, seed=42, resume=None, **kw):
-    """Curriculo de fracao de volume, mantido da v18. Cada fase retoma os
+    """curriculo de fracao de volume. cada fase retoma os
     pesos da anterior; o espaco de acoes nao muda entre fases."""
     assert len(vf_schedule) == len(steps_per_phase)
     tag = ("automotivo" if kw.get("problem_type", "automotive") == "automotive"
            else "cantilever")
     print("=" * 70)
-    print("  PPO v21 — CURRICULO DE FRACAO DE VOLUME")
+    print("  PPO — CURRICULO DE FRACAO DE VOLUME")
     print(f"  VF: {' -> '.join(f'{v:.2f}' for v in vf_schedule)}")
     print("=" * 70)
     t0 = time.time()
@@ -425,11 +419,11 @@ if __name__ == "__main__":
                              "desse valor; util ao retomar checkpoints")
     parser.add_argument("--reward_mode", type=str, default="log_delta",
                         choices=["log_delta", "brown"],
-                        help="'brown' reproduz a recompensa da v19/v20")
+                        help="'brown' reproduz a recompensa de Brown et al. (2022)")
     parser.add_argument("--reward_scale", type=float, default=10.0)
     parser.add_argument("--deadlock_penalty", type=float, default=10.0)
     parser.add_argument("--thin_threshold", type=float, default=0.0,
-                        help="restricao de espessura minima da v20; medida "
+                        help="restricao de espessura minima; medida "
                              "como inerte na faixa calibrada, deixe em 0.0")
     parser.add_argument("--dfam_peso", type=float, default=0.0,
                         help="peso da penalidade de overhang de 45 graus; "
@@ -441,11 +435,13 @@ if __name__ == "__main__":
                         choices=[None, "horizontal"],
                         help="cada acao remove o elemento e seu espelho "
                              "horizontal juntos; requer BCs simetricas "
-                             "(v22, ver 05_ambiente_rl.py)")
+                             "(ver 05_ambiente_rl.py)")
     parser.add_argument("--eval_freq", type=int, default=200_000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--resume", type=str, default=None,
                         help="checkpoint .zip para retomar o treino")
+    parser.add_argument("--manter_checkpoints", action="store_true",
+                        help="nao apaga os checkpoints periodicos ao fim do treino")
     parser.add_argument("--curriculum", action="store_true")
     parser.add_argument("--vf_schedule", type=float, nargs="+",
                         default=[0.60, 0.45, 0.30])
@@ -458,8 +454,8 @@ if __name__ == "__main__":
                                 vol_frac=args.vol_frac,
                                 problem_type=args.problem,
                                 simetria=args.simetria)
-        # sob simetria cada acao remove 2 elementos (ver 05_ambiente_rl.py,
-        # v22), entao o episodio tem ~metade dos passos
+        # sob simetria cada acao remove 2 elementos (ver 05_ambiente_rl.py),
+        # entao o episodio tem ~metade dos passos
         ep_len = _probe.n_to_remove // 2 + 1 if args.simetria else _probe.n_to_remove
         args.n_steps = int(np.ceil(ep_len * 1.25 / 64) * 64)
         print(f"n_steps automatico: {args.n_steps} "
@@ -474,7 +470,8 @@ if __name__ == "__main__":
                  reward_scale=args.reward_scale,
                  deadlock_penalty=args.deadlock_penalty,
                  eval_freq=args.eval_freq, simetria=args.simetria,
-                 dfam_peso=args.dfam_peso, dfam_base=args.dfam_base)
+                 dfam_peso=args.dfam_peso, dfam_base=args.dfam_base,
+                 manter_checkpoints=args.manter_checkpoints)
 
     if args.curriculum:
         train_curriculum(nelx=args.nelx, nely=args.nely,
