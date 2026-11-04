@@ -1,8 +1,8 @@
 """
 gera o banco de dados dos modelos substitutos: 300 execucoes de simp num
-cantilever 24x24 (compativel com o ambiente de brown et al. 2022), com
+cantilever 24x24 (compativel com o ambiente de brown 22), com
 capturas em iteracoes intermediarias segundo o schedule de duas etapas de
-banga et al. (2018). carga, vol_frac e rmin sorteados por execucao.
+banga 18. carga, vol_frac e rmin sorteados por execucao.
 saida: resultados/dados/topo_data_24x24.npz
 """
 
@@ -32,10 +32,10 @@ FEMSolverRL = _mod.FEMSolverRL
 nelx, nely = 24, 24      # malha quadrada compativel com o ambiente de rl
 n_runs = 300             # 300 execucoes x 20 capturas = 6000 amostras
 samp_per_run = 20
-max_iter = 100           # o simp converge em ~70-100 iteracoes (banga et al., 2018)
+max_iter = 100           # teto de iteracoes por execucao (o caso de kharmanda converge em 71; ver 01)
 seed = 42
 
-# p fixo em 3.0 (valor canonico do simp; andreassen et al., 2011). variar p sem
+# p fixo em 3.0 (valor canonico do simp; andreassen 11). variar p sem
 # passa-lo como feature criaria ruido nos rotulos, pois a compliancia depende de p.
 penal = 3.0
 
@@ -61,14 +61,18 @@ def build_filter_kernel(rmin):
 
 
 def banga_iter_schedule(n_samples, max_iter, rng):
-    """schedule de captura em duas etapas (banga et al., 2018, dataset 1).
+    """schedule de captura em duas etapas, adaptado de banga 18.
 
+    em banga (dataset 1), m ~ uniforme(1, t) e a iteracao usada como entrada e
+    n ~ uniforme(0, m) so serve ao canal de gradiente (diferenca de densidade
+    entre m e n). aqui a captura e feita na propria iteracao n:
     etapa 1: sorteia o limite superior m ~ uniforme(1, max_iter).
-    etapa 2: sorteia a iteracao alvo n ~ uniforme(1, m).
+    etapa 2: sorteia a iteracao capturada n ~ uniforme(1, m).
 
     a composicao pesa as iteracoes iniciais, onde a compliancia ainda e alta e
     a variancia e grande, o que o regressor precisa para nao colapsar por
-    homogeneidade.
+    homogeneidade. das iteracoes distintas sorteadas ficam as n_samples
+    menores, o que concentra ainda mais as capturas no inicio.
     """
     iters = []
     attempts = 0
@@ -88,7 +92,7 @@ def run_simp_sampled(nelx, nely, vol_frac, rmin, load_iy, fx, fy, sample_iters):
     """executa o simp e captura snapshots nas iteracoes sorteadas.
 
     usa femsolverrl para resolver ku = f e obter compliancia u^t f. o laco de
-    criterio de otimalidade (sigmund, 2001) e conduzido aqui, com filtro de
+    criterio de otimalidade (sigmund 01) e conduzido aqui, com filtro de
     densidade aplicado por convolucao.
     """
     solver = FEMSolverRL(nelx, nely, vol_frac=vol_frac, penal=penal, rmin=rmin)
@@ -103,7 +107,7 @@ def run_simp_sampled(nelx, nely, vol_frac, rmin, load_iy, fx, fy, sample_iters):
     solver.F[2 * load_node] = fx
     solver.F[2 * load_node + 1] = fy
 
-    x = vol_frac * np.ones((nely, nelx))    # inicializacao uniforme (andreassen et al., 2011)
+    x = vol_frac * np.ones((nely, nelx))    # inicializacao uniforme (andreassen 11)
     s_set = set(sample_iters)
     H = build_filter_kernel(rmin)
 
@@ -111,14 +115,15 @@ def run_simp_sampled(nelx, nely, vol_frac, rmin, load_iy, fx, fy, sample_iters):
     for loop in range(1, max(sample_iters) + 1):
         U, c_raw, _ = solver.solve(x)
 
-        # sensibilidade filtrada (sigmund, 2001)
+        # filtro de densidade: a sensibilidade passa pelo mesmo nucleo, regra da
+        # cadeia (andreassen 11, sec. 2.3)
         xp = np.clip(convolve(x, H, mode="reflect"), 0.001, 1.0)
         ue = U[solver.edofMat]
         ce = np.einsum("ij,jk,ik->i", ue, solver.KE, ue).reshape((nely, nelx), order="F")
         dc = -penal * (xp ** (penal - 1)) * ce
         dc = convolve(dc, H, mode="reflect")
 
-        # atualizacao por criterio de otimalidade (sigmund, 2001)
+        # atualizacao por criterio de otimalidade (sigmund 01)
         l1, l2 = 0.0, 1e9
         while (l2 - l1) > 1e-4:
             lm = 0.5 * (l2 + l1)
@@ -147,7 +152,7 @@ if __name__ == "__main__":
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
     print(f"coletando dados surrogate — cantilever {nelx}x{nely} | execucoes: {n_runs}")
-    print(f"schedule: duas etapas (Banga 2018) | max_iter={max_iter} | c_cutoff={c_cutoff}")
+    print(f"schedule: duas etapas (banga 18) | max_iter={max_iter} | c_cutoff={c_cutoff}")
     print(f"vol_frac: [0.3, 0.8] | rmin: {RMIN_OPTIONS} | penal={penal}")
 
     x_list, y_list, fx_list, fy_list = [], [], [], []

@@ -1,6 +1,6 @@
 """
 arquitetura da cnn substituta (entrada de 3 canais: densidade, fx, fy —
-banga et al. 2018; pilha 32/64/128 — kumarn et al. 2025) e treino/benchmark
+banga 18; pilha 32/64/128 — kumarn 25) e treino/benchmark
 dos tres substitutos (rf, gp+pca, cnn) sobre o dataset do 02. split
 treino/teste por run_id (groupshufflesplit, sem vazamento entre iteracoes
 da mesma execucao). alvo: log1p(compliancia).
@@ -85,7 +85,7 @@ class SurrogateCNN(nn.Module):
     def __init__(self):
         super().__init__()
 
-        # extrator convolucional 32/64/128 (kumarn et al., 2025)
+        # extrator convolucional 32/64/128 (kumarn 25)
         self.features = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=3, padding=1),
             nn.ReLU(),
@@ -116,7 +116,7 @@ class SurrogateCNN(nn.Module):
 # ---------------------------------------------------------------------------
 
 SEED = 42                # semente fixa para reproduzir os splits e as figuras
-C_CUTOFF = 320.0         # teto de compliancia operacional (alinhado ao codigo 01)
+C_CUTOFF = 320.0         # teto de compliancia operacional (o mesmo c_cutoff do 02)
 TEST_SPLIT = 0.2         # divisao treino/teste 80/20
 N_GP_MAX = 500           # limite de amostras do gp (custo o(n^3); rasmussen e williams)
 N_PCA_COMP = 10          # componentes principais para o gp (escolha empirica)
@@ -140,7 +140,7 @@ def build_force_maps(load_nodes, fxs, fys, nely, nelx):
     """constroi mapas espaciais 2d de fx e fy para cada amostra.
 
     o mapa e zerado exceto no elemento adjacente ao no de carga. codificar a
-    carga como canais espaciais segue banga et al. (2018).
+    carga como canais espaciais segue banga 18.
 
     numeracao dos nos: node = (nely+1)*ix + iy; elemento adjacente
     (elx, ely) = (min(ix, nelx-1), min(iy, nely-1)).
@@ -159,16 +159,29 @@ def build_force_maps(load_nodes, fxs, fys, nely, nelx):
 
 
 def compliance_fem(density, solver):
-    """compliancia via simp modificado (andreassen et al., 2011).
+    """uma analise mef completa (montagem, solucao e energia por elemento)
+    sobre a densidade ja filtrada da amostra; c = soma de x_e^p u_e^t k0 u_e.
 
     usada apenas para medir a latencia do mef na secao 3; o valor retornado
     nao alimenta as figuras de acuracia.
+    correcao (04/11/2026): a versao anterior convolvia a densidade 24x24 com
+    solver.H, que e a matriz densa 576x576 do filtro e nao um nucleo de
+    convolucao; essa conta, sem sentido fisico, respondia por quase todo o
+    tempo medido (~400 ms contra ~6 ms do mef numa maquina de teste).
     """
-    from scipy.ndimage import convolve
     _, ce, _ = solver.solve(density)
-    x_phys = np.clip(convolve(density, solver.H, mode="reflect"), 0.001, 1.0)
-    E0, Emin = 1.0, 1e-9
-    return float(np.sum((Emin + x_phys**3.0 * (E0 - Emin)) * ce))
+    return float(np.sum(ce))
+
+
+def tempo_mef_us(X_test_dens, solver):
+    """latencia media de uma analise mef, em us, uma amostra por vez."""
+    compliance_fem(X_test_dens[0], solver)  # aquecimento, descarta a primeira chamada
+    t = np.zeros(min(N_FEM_TIMING, len(X_test_dens)))
+    for i, dens in enumerate(X_test_dens[:len(t)]):
+        t0 = time.perf_counter()
+        compliance_fem(dens, solver)
+        t[i] = time.perf_counter() - t0
+    return float(np.mean(t) * 1e6)
 
 
 # ---------------------------------------------------------------------------
@@ -180,7 +193,7 @@ def train_cnn(x_train, y_train, crit, epochs=200):
 
     reserva 10% do treino como validacao interna (sem tocar no conjunto de
     teste) e interrompe se a perda de validacao nao melhora por 30 epocas.
-    entrada: (n, 3, nely, nelx); canais densidade, fx, fy (banga et al., 2018).
+    entrada: (n, 3, nely, nelx); canais densidade, fx, fy (banga 18).
     """
     xt, xv, yt, yv = train_test_split(x_train, y_train, test_size=0.1, random_state=SEED)
     model = SurrogateCNN()
@@ -368,13 +381,7 @@ def secao3_benchmark(X_test_dens, X_test_flat, Y_test, X_test_cnn,
     X_test_pca = pca.transform(scaler.transform(X_test_flat))
 
     print(f"\n[S3] medindo FEM ({N_FEM_TIMING} amostras)...")
-    compliance_fem(X_test_dens[0], solver)  # warmup, descarta o overhead da primeira chamada
-    t_fem_v = np.zeros(N_FEM_TIMING)
-    for i, dens in enumerate(X_test_dens[:N_FEM_TIMING]):
-        t0 = time.perf_counter()
-        compliance_fem(dens, solver)
-        t_fem_v[i] = time.perf_counter() - t0
-    t_fem_us = np.mean(t_fem_v) * 1e6
+    t_fem_us = tempo_mef_us(X_test_dens, solver)
     print(f"  FEM: {t_fem_us/1000:.3f} ms/amostra ({t_fem_us:.0f} us)")
 
     print("\n[S3] medindo surrogates...")
@@ -498,7 +505,7 @@ if __name__ == "__main__":
     ye_log = y_log[id_te]
     ye_lin = y_lin[id_te]
 
-    # cnn: tensor de 3 canais (densidade, fx_map, fy_map) — banga et al. (2018)
+    # cnn: tensor de 3 canais (densidade, fx_map, fy_map) — banga 18
     x_cnn_all = np.stack([x_raw, fx_maps, fy_maps], axis=1).astype(np.float32)
     xt_cnn = torch.FloatTensor(x_cnn_all[id_tr])
     xe_cnn = torch.FloatTensor(x_cnn_all[id_te])
@@ -511,6 +518,13 @@ if __name__ == "__main__":
     node_mid = (nely + 1) * nelx + mid
     solver.F = np.zeros(solver.ndof)
     solver.F[2 * node_mid + 1] = -1.0
+
+    # --so_tempo_mef: mede so a latencia do mef, sem treinar nada, para
+    # atualizar o tempo citado no texto sem refazer os modelos
+    if "--so_tempo_mef" in sys.argv:
+        t_us = tempo_mef_us(x_raw[id_te], solver)
+        print(f"FEM: {t_us/1000:.3f} ms/amostra ({N_FEM_TIMING} amostras do teste)")
+        sys.exit(0)
 
     resultados, model_cnn, rf, gp, scaler, pca = secao1_treino(
         xt_flat, xe_flat, yt_log, ye_log, ye_lin,

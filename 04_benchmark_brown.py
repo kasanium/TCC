@@ -1,10 +1,11 @@
 """
-injeta a cnn substituta (03) como avaliadora de compliancia no dqn de brown
-et al. (2022), somente na malha fina 24x24 do refinamento progressivo, e
+injeta a cnn substituta (03) como avaliadora de compliancia no dqn de brown 22, somente na malha fina 24x24 do refinamento progressivo, e
 compara topologia e tempo contra o dqn original e o simp em tres casos.
 requer o codigo de brown vendorizado em brown_original/ (top_opt_rl) e
 tensorflow. limitacoes declaradas: a cnn nao preve o campo de tensao
 (devolvido constante) e os canais de forca entram zerados.
+primeira tentativa de acoplamento: no texto foi substituida pela u-net de campo
+(tentativa/t01-t03), e a figura deste script nao entra mais no tcc.
 saida: resultados/04_benchmark_brown_surrogate.png
 """
 
@@ -64,7 +65,7 @@ from Top_Opt_RL.DQN.opts import parse_opts
 from Top_Opt_RL.DQN.main import EnviromentsRL, TopOpt_Designing
 from Top_Opt_RL.DQN.FEA_SOLVER_GENERAL import FEASolve
 
-# casos de teste no formato do ambiente de brown (2022)
+# casos de teste no formato do ambiente de brown 22
 TEST_CASES = {
     "1_Cantilever": {"bcs": [1, 553],             "downs": [312],        "vol": 0.35},
     "2_Ponte":      {"bcs": [552, 553, 574, 575], "downs": [11, 12, 13], "vol": 0.40},

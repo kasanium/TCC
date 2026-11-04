@@ -1,12 +1,12 @@
 """
-demonstracao do padrao em xadrez (checkerboarding, diaz e sigmund 1995) e do
-efeito do filtro de sensibilidade de sigmund (2001). roda o mesmo simp/oc do
-caso de validacao de kharmanda et al. (2004) (32x20, f=0.4, p=3, 120
+demonstracao do padrao em xadrez (checkerboarding, diaz 95) e do
+efeito do filtro de sensibilidade de sigmund 01. roda o mesmo simp/oc do
+caso de verificacao de kharmanda 04 (32x20, f=0.4, p=3, 120
 iteracoes fixas, sem parada antecipada — mesmo numero de iteracoes nos dois
 casos, para a unica diferenca ser o filtro) duas vezes:
   (a) sem filtro: h = i, hs = 1 (o operador da eq. do filtro vira identidade,
       a sensibilidade filtrada e igual a original);
-  (b) com filtro: r_min = 1.2 (mesmo valor do caso de validacao).
+  (b) com filtro: r_min = 1.2 (mesmo valor do caso de verificacao).
 
 indice de xadrez: fracao de elementos internos (com os 4 vizinhos ortogonais
 dentro do dominio) cuja classificacao binaria (solido/vazio, limiar 0.5) e

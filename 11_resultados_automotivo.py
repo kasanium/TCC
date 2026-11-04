@@ -2,7 +2,8 @@
 comparacao final no suporte automotivo 30x30, todas com as mesmas bcs (10)
 e binarizacao a vf exato: simp binarizado, baseline guloso eso (mesmo
 espaco de acoes do agente, ver rodar_guloso em 05), agente ppo bruto e
-ppo + polimento simp (15 iteracoes, woldseth et al. 2022). figura de 3
+ppo + polimento simp (15 iteracoes; pos-processar com algumas iteracoes do
+metodo convencional e sugestao de woldseth 22). figura de 3
 paineis horizontais (simp, ppo bruto, von mises do ppo bruto); o polimento
 continua calculado e salvo no .npz para uso do 12_analises_automotivo.py,
 mas nao aparece na figura.
@@ -137,7 +138,7 @@ def episodio_greedy(model_path, seed=0):
     env = TopoOptMaskEnv(nelx=NELX, nely=NELY, vol_frac=VOL_FRAC,
                          problem_type="automotive")
     wenv = ActionMasker(env, topo_mask_fn)
-    model = MaskablePPO.load(model_path)
+    model = MaskablePPO.load(model_path, device="cpu")
     obs, _ = wenv.reset(seed=seed)
     done, info, t0 = False, {}, time.time()
     while not done:

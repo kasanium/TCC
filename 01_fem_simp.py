@@ -1,8 +1,7 @@
 """
-solver mef + simp (sigmund 2001; andreassen et al. 2011; bendsoe e sigmund
-2004), com montagem esparsa e operacoes vetorizadas. validado contra o caso
-cantilever de kharmanda et al. (2004). importado por todos os outros scripts
-via spec_from_file_location. rodar direto gera as duas figuras de validacao
+solver mef + simp (sigmund 01; andreassen 11; bendsoe 04), com montagem esparsa e operacoes vetorizadas. verificado contra o caso
+cantilever de kharmanda 04 (tabela 1, exemplo 2: c = 57,3492). importado por todos os outros scripts
+via spec_from_file_location. rodar direto gera as duas figuras de verificacao
 (caso 32x20 de kharmanda e caso de estudo 20x10).
 """
 
@@ -28,8 +27,8 @@ plt.rcParams.update({
 def lk():
     """matriz de rigidez do elemento quadrilatero bilinear (q4).
 
-    forma analitica para material isotropico (sigmund, 2001;
-    andreassen et al., 2011).
+    forma analitica para material isotropico (sigmund 01;
+    andreassen 11).
     """
     E, nu = 1.0, 0.3
     k = np.array([1/2 - nu/6, 1/8 + nu/8, -1/4 - nu/12, -1/8 + 3*nu/8,
@@ -47,7 +46,7 @@ def lk():
 
 def precompute_filter(nelx, nely, rmin):
     """pre-calcula o operador de filtro de sensibilidade h e a soma das
-    linhas hs (sigmund, 2001).
+    linhas hs (sigmund 01).
 
     a matriz h e densa; e suficiente para as malhas usadas neste trabalho,
     mas escala mal em malhas muito grandes.
@@ -125,12 +124,12 @@ def sensitivity_analysis(nelx, nely, x, penal, U):
     edofMat, _, _ = _build_indices(nelx, nely)
     Ue = U[edofMat]                                     # (n_elem, 8)
 
-    # energia de deformacao por elemento (andreassen et al., 2011)
+    # energia de deformacao por elemento (andreassen 11)
     ce_flat = np.einsum("ij,jk,ik->i", Ue, KE, Ue)
     E_vec = x_flat ** penal
     c = float(np.dot(E_vec, ce_flat))
 
-    # sensibilidade dc/dx_e = -p * x_e^(p-1) * ce (sigmund, 2001)
+    # sensibilidade dc/dx_e = -p * x_e^(p-1) * ce (sigmund 01)
     dc = -penal * (x_flat ** (penal - 1)) * ce_flat
 
     # energia efetiva (com penalizacao) por elemento
@@ -155,7 +154,7 @@ def sensitivity_analysis(nelx, nely, x, penal, U):
 
 
 def optimality_criteria_update(nelx, nely, x, volfrac, dc, H, Hs):
-    """atualizacao das densidades por criterio de otimalidade (sigmund, 2001).
+    """atualizacao das densidades por criterio de otimalidade (sigmund 01).
 
     o multiplicador de lagrange lambda e obtido por bisseccao para satisfazer
     a restricao de volume.
@@ -214,10 +213,12 @@ class FEMSolverRL:
     """solver mef para o ambiente de aprendizado por reforco.
 
     diferenca em relacao a femsolver: aqui a compliancia e calculada como
-    u^t f, coerente com a formulacao de brown et al. (2022), que usa acoes
+    u^t f, coerente com a formulacao de brown 22, que usa acoes
     binarias (e_e em {e0, emin}) sem densidades intermediarias. a penalizacao
     x^p nao tem papel mecanico nesse regime e distorceria a escala da
-    recompensa.
+    recompensa. brown 22 chamam essa grandeza de energia de deformacao,
+    mas o codigo deles calcula u^t k u (FEA_SOLVER_GENERAL.py, l. 253-254),
+    a mesma conta.
 
     api:
         solve(x) -> (u, compliance, vm_map)
@@ -330,10 +331,10 @@ if __name__ == "__main__":
     _HERE = os.path.dirname(os.path.abspath(__file__))
     os.makedirs(os.path.join(_HERE, "resultados"), exist_ok=True)
 
-    # caso00: validacao contra kharmanda et al. (2004); caso02: malha do projeto
+    # caso00: verificacao contra kharmanda 04; caso02: malha do projeto
     casos = [
         {
-            # validacao contra a literatura: mantido em campo continuo (cinza),
+            # verificacao contra a literatura: mantido em campo continuo (cinza),
             # fiel a como o resultado de referencia e reportado. nao binarizar
             # este caso.
             "nome": "caso00_original",

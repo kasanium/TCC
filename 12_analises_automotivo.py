@@ -5,7 +5,7 @@ analises pos-otimizacao do suporte automotivo 30x30:
              material e analitico, c ~ 1/e); (a2) simp re-otimizado do
              zero sob perturbacao de geometria dos furos e de carga.
   dfam     : fracao de elementos solidos em violacao da regra de overhang
-             de 45 graus (ibhadode et al. 2023; dangal e jung 2023) nas
+             de 45 graus (ibhadode 23; dangal 23) nas
              quatro orientacoes de impressao, suporte automotivo 30x30,
              incluindo a topologia ppo polida quando 11 ja tiver salvo o
              npz. verificacao pos-otimizacao; nao e termo do objetivo nem
@@ -14,7 +14,7 @@ analises pos-otimizacao do suporte automotivo 30x30:
              filtro constante (rmin 1.5/3.0/4.5) e geometria fisica
              constante (furos e olhais escalados em ponto flutuante em
              build_bcs) — teste canonico de independencia de malha do simp
-             (sigmund 2001).
+             (sigmund 01).
 
 saidas: resultados/12_robustez.{png,csv}, 12_dfam.{png,csv}, 12_malha.png
 uso: python 12_analises_automotivo.py [--so robustez|dfam|malha|tudo]
@@ -94,10 +94,10 @@ def _spines(ax):
 
 
 def _carrega_topologia_ppo(nome):
-    """le a topologia polida salva por 09/11; none se ainda nao foi gerada."""
+    """le a topologia polida salva pelo 11; none se ainda nao foi gerada."""
     p = os.path.join(_DIR, "resultados", "dados", f"topologia_ppo_{nome}.npz")
     if not os.path.exists(p):
-        print(f"  aviso: {p} nao encontrado (rode 09/11 antes) — analise do ppo pulada")
+        print(f"  aviso: {p} nao encontrado (rode 11 antes) — analise do ppo pulada")
         return None
     return np.load(p)["polido"]
 

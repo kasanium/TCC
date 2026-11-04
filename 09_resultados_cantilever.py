@@ -2,12 +2,11 @@
 avaliacao do agente ppo do cantilever 20x10 (checkpoint treinado por
 08_treinar_ppo.py --problem cantilever --simetria horizontal):
   (a) tabela e curvas de treino (recompensa media movel vs passos);
-  (b) comparacao de topologias no dominio 2:1 — simp vs dqn de brown et al.
-      (2022, bcs a 1/4 e 3/4 da altura da malha 24x24) vs ppo;
+  (b) comparacao de topologias no dominio 2:1 — simp vs dqn de brown 22 (bcs a 1/4 e 3/4 da altura da malha 24x24) vs ppo;
   (c) simp binarizado nativo em 20x10, mesma malha do agente, sem upscaling,
       para uma comparacao de compliancia justa entre metodos.
 
-a compliancia e sempre u^t f (brown et al. 2022), comparavel entre etapas.
+a compliancia e sempre u^t f (brown 22), comparavel entre etapas.
 o painel do dqn requer brown_original/ (top_opt_rl) + tensorflow; sem eles
 o painel e pulado com aviso e o resto roda normalmente.
 
@@ -116,7 +115,7 @@ LOAD = (EX - 1) * EY + (Y_LO + Y_HI) // 2 + 1
 # ---------------------------------------------------------------------------
 
 def roda_simp(nx=NELX, ny=NELY, vf=VOL_FRAC):
-    """simp classico (sigmund 2001) no cantilever 2:1; compliancia u^t f."""
+    """simp classico (sigmund 01) no cantilever 2:1; compliancia u^t f."""
     solver = FEMSolver(nx, ny, vf, PENAL, RMIN)
     H, Hs = precompute_filter(nx, ny, RMIN)
     x = np.ones(ny * nx, dtype=float) * vf
@@ -136,7 +135,7 @@ def avaliar_agente(zip_path=MODEL_PPO):
     env = TopoOptMaskEnv(NELX, NELY, VOL_FRAC, problem_type="cantilever",
                          simetria=SIMETRIA)
     co = {"lr_schedule": lambda _: 3e-4, "clip_range": lambda _: 0.2}
-    model = MaskablePPO.load(zip_path, custom_objects=co)
+    model = MaskablePPO.load(zip_path, custom_objects=co, device="cpu")
     obs, _ = env.reset()
     done = trunc = False
     while not (done or trunc):
@@ -202,7 +201,7 @@ def plotar_curvas():
 # ---------------------------------------------------------------------------
 
 def _rodar_brown_2to1():
-    """roda o dqn de brown (2022) com engastes 2:1; devolve o recorte util."""
+    """roda o dqn de brown 22 com engastes 2:1; devolve o recorte util."""
     os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
     _BROWN = os.path.join(_DIR, "brown_original")
     if _BROWN not in sys.path:
@@ -364,7 +363,7 @@ def varredura_sementes(c_ref):
         print(f"   {tag}: C = {c:.4f}")
         cs.append(c)
     cs = np.array(cs)
-    print(f"   media = {cs.mean():.4f} | desvio = {cs.std():.4f} | n = {len(cs)}")
+    print(f"   media = {cs.mean():.4f} | desvio amostral = {cs.std(ddof=1):.4f} | n = {len(cs)}")
 
 
 

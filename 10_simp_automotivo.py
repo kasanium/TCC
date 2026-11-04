@@ -4,9 +4,10 @@ baseline simp do suporte automotivo 30x30 e estudo de ablacao.
 cada furo de parafuso vira duas regioes passivas: void (raio r_hole, sempre
 vazio) e olhal solido (ate r_boss, sempre cheio); o engaste fica so nos nos
 da interface do furo, de modo que o olhal deforma e carrega tensao real.
-carga horizontal unitaria (tracao) no no central da aresta direita. o criterio de
+carga vertical unitaria (dof y, paralela a linha dos furos; a peca trabalha em
+flexao) no no central da aresta direita. o criterio de
 otimalidade trata os passivos dentro da bisseccao de volume (oc_passive,
-andreassen et al. 2011; filtro de sensibilidade de sigmund 2001).
+andreassen 11; filtro de sensibilidade de sigmund 01).
 
 build_bcs() e parametrizavel (posicao/raio dos furos, magnitude/angulo/
 ponto da carga) e e reusado por 11 e 12.
@@ -76,7 +77,8 @@ def build_bcs(nelx, nely, centers=None, r_hole=None,
     (furos em (5; 7,5) e (5; 22,5), raio 2, olhal de espessura ring), escalada
     em ponto flutuante para a malha atual, de modo que 30x30, 60x60 e 90x90
     representem a mesma peca fisica, simetrica em torno de y = nely/2; carga
-    horizontal de tracao no meio da aresta direita (angulo 0 = direcao nominal)."""
+    vertical (dof y, paralela a linha dos furos) no meio da aresta direita
+    (angulo 0 = direcao nominal; angulo 90 = tracao para a direita)."""
     scale = nelx / 30.0
     if centers is None:
         centers = [(5.0 * scale, 7.5 * scale),

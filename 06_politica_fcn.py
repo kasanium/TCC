@@ -1,9 +1,9 @@
 """
 politica totalmente convolucional para o maskableppo: o tronco preserva a
 resolucao espacial e a cabeca do ator emite um logit por elemento via
-convolucao 1x1 — sem pooling e sem camada densa antes da saida, o padrao de
-brown et al. (2022, fig. 6, quatro convolucoes 16/8/4/1) e de kumarn et al.
-(2025). motivo: com adaptiveavgpool antes das densas nao existe caminho da
+convolucao 1x1, sem pooling e sem camada densa antes da saida, como em
+brown 22 (fig. 6: quatro convolucoes 16/8/4/1). de kumarn 25 (fig. 4) vem so o tronco convolucional compartilhado entre ator e
+critico; la a cabeca do ator e densa (tabela 4). motivo: com adaptiveavgpool antes das densas nao existe caminho da
 tensao do elemento i ate o logit i, e a politica gulosa eso (que empata com
 o simp) nem pertence a classe de funcoes representaveis. o critico usa
 pooling global + mlp (pode ser global; so o ator precisa de resolucao).

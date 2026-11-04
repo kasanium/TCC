@@ -1,0 +1,5 @@
+carregando dados...
+regiao operacional C<=320: 6000 amostras
+C min: 3.25 | C max: 221.20 | std: 14.34
+treino: 4800 | teste fixo: 1200 (GroupShuffleSplit por run)
+FEM: 4.841 ms/amostra (50 amostras do teste)

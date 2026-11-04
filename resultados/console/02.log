@@ -1,0 +1,21 @@
+coletando dados surrogate — cantilever 24x24 | execucoes: 300
+schedule: duas etapas (Banga 2018) | max_iter=100 | c_cutoff=320.0
+vol_frac: [0.3, 0.8] | rmin: [1.2, 1.5, 2.0, 2.5] | penal=3.0
+  execucao 20/300 | amostras validas: 400
+  execucao 40/300 | amostras validas: 800
+  execucao 60/300 | amostras validas: 1200
+  execucao 80/300 | amostras validas: 1600
+  execucao 100/300 | amostras validas: 2000
+  execucao 120/300 | amostras validas: 2400
+  execucao 140/300 | amostras validas: 2800
+  execucao 160/300 | amostras validas: 3200
+  execucao 180/300 | amostras validas: 3600
+  execucao 200/300 | amostras validas: 4000
+  execucao 220/300 | amostras validas: 4400
+  execucao 240/300 | amostras validas: 4800
+  execucao 260/300 | amostras validas: 5200
+  execucao 280/300 | amostras validas: 5600
+  execucao 300/300 | amostras validas: 6000
+
+coleta concluida: 6000 amostras | 173.8s
+C min: 3.25 | C max: 221.20 | std: 14.34

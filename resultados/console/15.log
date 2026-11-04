@@ -1,0 +1,32 @@
+2026-11-03 13:40:58.455942: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+2026-11-03 13:40:58.483782: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-11-03 13:40:58.975844: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+==========================================================================
+ VERIFICACAO DE TENSAO E DESLOCAMENTO — SUPORTE AUTOMOTIVO 30x30
+==========================================================================
+
+valores absolutos (e = 1, carga unitaria, p = 8):
+--------------------------------------------------------------------------------------
+  topologia                   C    u_carga      u_max      s_max s_max_fora       s_pn  local s_max
+--------------------------------------------------------------------------------------
+  SIMP binarizado       20.7202    20.7202    20.7202     0.6627     0.4228     0.3774        carga
+  Heurística ESO        20.4154    20.4155    20.4155     0.6779     0.4298     0.3808        carga
+  PPO bruto             20.3231    20.3232    20.3232     0.6936     0.4521     0.3887        carga
+  PPO polido            20.5224    20.5225    20.5225     0.6630     0.4242     0.3774        carga
+--------------------------------------------------------------------------------------
+
+relativos ao SIMP binarizado (%):
+--------------------------------------------------------------------------------------
+  SIMP binarizado         +0.0%      +0.0%      +0.0%      +0.0%      +0.0%      +0.0%
+  Heurística ESO          -1.5%      -1.5%      -1.5%      +2.3%      +1.6%      +0.9%
+  PPO bruto               -1.9%      -1.9%      -1.9%      +4.7%      +6.9%      +3.0%
+  PPO polido              -1.0%      -1.0%      -1.0%      +0.0%      +0.3%      +0.0%
+--------------------------------------------------------------------------------------
+
+tabela: /home/mmgomes/tcc_teste_limpo_20261102/codigos/resultados/15_tensao_deslocamento.csv
+figura: /home/mmgomes/tcc_teste_limpo_20261102/codigos/resultados/15_tensao_deslocamento.png

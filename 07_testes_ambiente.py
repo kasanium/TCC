@@ -243,12 +243,12 @@ def test_v21_politica_fcn_smoke():
     model = MaskablePPO(TopoFCNPolicy, vec,
                         policy_kwargs=fcn_policy_kwargs(nx, ny),
                         n_steps=64, batch_size=64, n_epochs=2,
-                        gamma=1.0, verbose=0, seed=7)
+                        gamma=1.0, verbose=0, seed=7, device="cpu")
     model.learn(total_timesteps=2_000)
 
     ckpt = os.path.join(_DIR, "_smoke_fcn_ckpt")
     model.save(ckpt)
-    recarregado = MaskablePPO.load(ckpt)
+    recarregado = MaskablePPO.load(ckpt, device="cpu")
     env = TopoOptMaskEnv(nelx=nx, nely=ny, vol_frac=0.5, problem_type="cantilever")
     obs, _ = env.reset(seed=0)
     mask = env.get_action_mask()

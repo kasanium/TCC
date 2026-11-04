@@ -1,23 +1,22 @@
 """
-ambiente de rl com hard action masking de conectividade (huang e ontanon
-2022; hong et al. 2025). a mascara e calculada por pontos de articulacao
-(tarjan, o(v+e)), cacheada por estado, com terminacao limpa por deadlock
+ambiente de rl com hard action masking de conectividade (huang 22; hong 25). a mascara e calculada por pontos de articulacao
+(hopcroft 73, o(v+e)), cacheada por estado, com terminacao limpa por deadlock
 geometrico (sem acao valida antes do vf alvo -> done, sem nan). observacao
 de 5 canais: densidade, tensao normalizada (p99), posto normalizado da
 tensao (o argmin dele entre as acoes validas e a politica gulosa eso),
 engastes e carga. recompensa telescopica r_t = k*log(c_{t-1}/c_t), cuja
-soma no episodio e o proprio objetivo (potential-based shaping, ng, harada
-e russell 1999); treino com gamma=1.0. reward_mode="brown" reproduz a eq. 4
-de brown et al. (2022). simetria="horizontal" (opcional) remove cada
+soma no episodio e o proprio objetivo (potential-based shaping, ng 99); treino com gamma=1.0. reward_mode="brown" reproduz a eq. 4
+de brown 22. simetria="horizontal" (opcional) remove cada
 elemento junto do espelho e so libera pares que preservam um unico
 componente; requer bcs simetricas (assert no __init__). compliancia u^t f
-via femsolverrl (brown et al. 2022). thin_threshold (espessura minima)
+via femsolverrl (brown 22). thin_threshold (espessura minima)
 existe mas fica desligado por padrao: medido inerte em 0.00-0.45 e
 travando episodios em ~0.60 (ver testes em 07_testes_ambiente.py).
 
-rodar_guloso() e o baseline eso (xie e steven 1993) no mesmo espaco de
+rodar_guloso() e o baseline eso (querin 98; criterio de remocao por
+baixa tensao como na eq. 3 de deaton 14) no mesmo espaco de
 acoes do agente: a cada passo remove o elemento valido de menor tensao,
-com filtro de sensibilidade opcional (sigmund 2001). o raio do filtro nao
+com filtro de sensibilidade opcional (sigmund 01). o raio do filtro nao
 transfere entre malhas: em 30x30 o guloso com rmin=1.5 chega a c = 20.42; em 20x10 filtrar piora
 (71.66 -> 82.45), e sob simetria o efeito inverte de novo.
 
@@ -28,12 +27,12 @@ dfam_base (mesma metrica de 12_analises_automotivo.py). a soma no episodio
 telescopa para -dfam_peso*(viol_t - viol_0), entao o retorno vira
 k*log(c_0/c_t) - dfam_peso*viol_t (viol_0 e a do dominio inicial), um
 trade-off explicito rigidez x fabricabilidade. a regra de
-45 graus e a de ibhadode et al. (2023) e dangal e jung (2023), que
+45 graus e a de ibhadode 23 e dangal 23, que
 tambem medem o custo em compliancia de restringir overhang na ot
 classica; incorporar a restricao como termo de penalidade no objetivo e
 o metodo de penalidade usual; e penalizar o incremento a cada passo (em
 vez de um termo esparso so no fim) segue a recomendacao de recompensas
-densas para problemas fisicos de mozaffar, ebrahimi e cao (2020). a
+densas para problemas fisicos de mozaffar 20. a
 soma por episodio equivale ao termo terminal; o peso e calibrado
 empiricamente por varredura. desligada por padrao (dfam_peso=0), custo
 zero quando desligada.
@@ -80,7 +79,7 @@ class TopoOptMaskEnv(gym.Env):
 
         # recompensa (ver docstring do modulo)
         #   "log_delta" : r_t = reward_scale * log(c_{t-1}/c_t)   [padrao]
-        #   "brown"     : r_t = (c_s/c_t)^2 + (alpha_t/n^2)^2     [brown et al. 2022, eq. 4]
+        #   "brown"     : r_t = (c_s/c_t)^2 + (alpha_t/n^2)^2     [brown 22, eq. 4]
         self.reward_scale = float(reward_scale)
         self.deadlock_penalty = float(deadlock_penalty)
         self.reward_mode = reward_mode
@@ -105,7 +104,7 @@ class TopoOptMaskEnv(gym.Env):
         self.thin_threshold = thin_threshold
         self._thin_kernel, self._thin_w1 = self._build_thin_kernel(thin_radius)
 
-        # compliancia = u^t f (brown et al., 2022)
+        # compliancia = u^t f (brown 22)
         self.solver = FEMSolverRL(nelx, nely, vol_frac, penal, rmin)
 
         # mascaras passivas (no cantilever ambas ficam vazias)
@@ -195,7 +194,7 @@ class TopoOptMaskEnv(gym.Env):
         self.solver.fixeddofs = np.concatenate([2 * fixed_nodes, 2 * fixed_nodes + 1])
         self.solver.freedofs = np.setdiff1d(np.arange(ndof), self.solver.fixeddofs)
 
-        # carga no meio da aresta direita
+        # carga vertical (dof y) no meio da aresta direita, como em build_bcs
         self.solver.F = np.zeros(ndof)
         load_node = (self.nely + 1) * self.nelx + self.nely // 2
         self.solver.F[2 * load_node + 1] = -1.0
@@ -311,7 +310,7 @@ class TopoOptMaskEnv(gym.Env):
 
     def _articulation_flags(self, solid):
         """pontos de articulacao do grafo de conectividade-4 dos elementos
-        solidos, por busca em profundidade iterativa (algoritmo de tarjan).
+        solidos, por busca em profundidade iterativa (hopcroft 73).
         retorna um vetor booleano achatado: true onde remover o elemento
         fragmentaria o corpo. custo o(v+e); equivalente exato ao teste
         elemento a elemento com scipy.ndimage.label (07_testes_ambiente.py).
@@ -407,8 +406,7 @@ class TopoOptMaskEnv(gym.Env):
         return ok
 
     def get_action_mask(self):
-        """hard action masking de conectividade (huang e ontanon, 2022; hong
-        et al., 2025), de espessura minima (ver docstring do
+        """hard action masking de conectividade (huang 22; hong 25), de espessura minima (ver docstring do
         modulo) e, opcionalmente, de simetria horizontal: valido = solido, nao protegido, nao
         ponto de articulacao (ou par-de-espelhos nao articulador, sob
         simetria), e nao deixa vizinho abaixo da densidade local minima.
@@ -537,7 +535,7 @@ class TopoOptMaskEnv(gym.Env):
         c_prev = max(float(self.current_compliance), 1e-12)
         c_t = max(float(new_compliance), 1e-12)
         if self.reward_mode == "brown":
-            # forma original de brown et al. (2022), eq. 4 — mantida para
+            # forma original de brown 22, eq. 4 — mantida para
             # reproduzir a recompensa original
             reward = ((self.initial_compliance / c_t) ** 2
                       + (self.n_removed / self.n_elements) ** 2)

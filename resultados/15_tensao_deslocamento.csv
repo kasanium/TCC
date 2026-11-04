@@ -1,0 +1,5 @@
+topologia,C,u_carga,u_max,s_max,s_max_fora,s_pn,local_s_max
+SIMP binarizado,20.7202,20.7202,20.7202,0.6627,0.4228,0.3774,carga
+Heurística ESO,20.4154,20.4155,20.4155,0.6779,0.4298,0.3808,carga
+PPO bruto,20.3231,20.3232,20.3232,0.6936,0.4521,0.3887,carga
+PPO polido,20.5224,20.5225,20.5225,0.6630,0.4242,0.3774,carga

@@ -14,7 +14,7 @@ ao fim do treino os checkpoints periodicos (a cada 10% dos passos) sao apagados:
 so servem para --resume de um treino interrompido (--manter_checkpoints os preserva).
 
 resultados de referencia deste tcc (treino do zero, seed 42):
-    cantilever 20x10 vf=0.50 --simetria horizontal, 1.5m passos (c = 70.85)
+    cantilever 20x10 vf=0.50 --simetria horizontal, 1.5m passos (c = 71.31)
     automotivo 30x30 vf=0.30, 3m passos (c = 20.32; sementes 7/13/21/42/99:
     20.33 +- 0.03)
 """
@@ -201,7 +201,7 @@ def new_model(env, seed, nelx, nely, n_steps=768, gamma=1.0,
         ent_coef=ent_coef,
         vf_coef=0.5,
         max_grad_norm=0.5,
-        device="auto",
+        device="cpu",
         seed=seed,
     )
 
@@ -215,7 +215,7 @@ def load_model(resume, env, lr=3e-4, ent_coef=None, n_steps=None,
         "clip_range": lambda _: clip_range,
     }
     model = MaskablePPO.load(resume, env=env, custom_objects=custom_objects,
-                             device="auto")
+                             device="cpu")
     model.set_env(env)
     if ent_coef is not None:
         print(f"  ent_coef: {model.ent_coef} -> {ent_coef}")
@@ -384,7 +384,7 @@ def train_curriculum(nelx=30, nely=30, vf_schedule=(0.60, 0.45, 0.30),
                              f"v21_{tag}_{nelx}x{nely}")
     os.makedirs(canon_dir, exist_ok=True)
     canon_path = os.path.join(canon_dir, f"ppo_v21_{tag}_final")
-    MaskablePPO.load(final, device="auto").save(canon_path)
+    MaskablePPO.load(final, device="cpu").save(canon_path)
     print(f"\ncurriculo concluido em {(time.time()-t0)/3600:.1f}h")
     print(f"checkpoint final (canonico): {canon_path}.zip")
     return canon_path
@@ -419,7 +419,7 @@ if __name__ == "__main__":
                              "desse valor; util ao retomar checkpoints")
     parser.add_argument("--reward_mode", type=str, default="log_delta",
                         choices=["log_delta", "brown"],
-                        help="'brown' reproduz a recompensa de Brown et al. (2022)")
+                        help="'brown' reproduz a recompensa de brown 22")
     parser.add_argument("--reward_scale", type=float, default=10.0)
     parser.add_argument("--deadlock_penalty", type=float, default=10.0)
     parser.add_argument("--thin_threshold", type=float, default=0.0,
