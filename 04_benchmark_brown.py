@@ -4,8 +4,8 @@ compara topologia e tempo contra o dqn original e o simp em tres casos.
 requer o codigo de brown vendorizado em brown_original/ (top_opt_rl) e
 tensorflow. limitacoes declaradas: a cnn nao preve o campo de tensao
 (devolvido constante) e os canais de forca entram zerados.
-primeira tentativa de acoplamento: no texto foi substituida pela u-net de campo
-(tentativa/t01-t03), e a figura deste script nao entra mais no tcc.
+a figura deste script nao entra no texto; o acoplamento usado e o da u-net
+de campo (04_a a 04_c).
 saida: resultados/04_benchmark_brown_surrogate.png
 """
 
@@ -207,8 +207,7 @@ if __name__ == "__main__":
     _OUT = os.path.join(_HERE, "resultados", "04_benchmark_brown_surrogate.png")
     os.makedirs(os.path.dirname(_OUT), exist_ok=True)
 
-    # titulos e rotulo de speedup curtos: com 3 colunas cada painel tem so
-    # largura_mancha_pol/3 = 2.1 pol. de pagina em fonte real de 12 pt
+    # titulos curtos: cada painel tem 2,1 pol. de largura na pagina
     nc = len(TEST_CASES)
     fig, axs = plt.subplots(nc, 3, figsize=(13, 4 * nc))
     titles = ["SIMP", "DQN (ref.)", "DQN+CNN"]
@@ -219,10 +218,9 @@ if __name__ == "__main__":
         r_orig, t_orig = run_brown(config, use_surrogate=False)
         r_surr, t_surr = run_brown(config, use_surrogate=True)
 
-        # arredonda os tempos antes de calcular o speedup, para o rotulo bater
-        # com a conta feita a mao a partir dos tempos impressos na figura
+        # speedup calculado com os tempos arredondados da figura
         t_orig_r, t_surr_r = round(t_orig, 1), round(t_surr, 1)
-        nome_limpo = f"({row + 1}) {name.split('_', 1)[1]}"  # sem underscore literal
+        nome_limpo = f"({row + 1}) {name.split('_', 1)[1]}"
         resultados = [
             (r_simp, nome_limpo, "gray_r"),
             (r_orig, f"{t_orig_r:.1f} s".replace(".", ","), "Blues"),

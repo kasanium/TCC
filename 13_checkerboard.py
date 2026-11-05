@@ -2,7 +2,7 @@
 demonstracao do padrao em xadrez (checkerboarding, diaz 95) e do
 efeito do filtro de sensibilidade de sigmund 01. roda o mesmo simp/oc do
 caso de verificacao de kharmanda 04 (32x20, f=0.4, p=3, 120
-iteracoes fixas, sem parada antecipada — mesmo numero de iteracoes nos dois
+iteracoes fixas, sem parada antecipada, mesmo numero de iteracoes nos dois
 casos, para a unica diferenca ser o filtro) duas vezes:
   (a) sem filtro: h = i, hs = 1 (o operador da eq. do filtro vira identidade,
       a sensibilidade filtrada e igual a original);
@@ -10,8 +10,7 @@ casos, para a unica diferenca ser o filtro) duas vezes:
 
 indice de xadrez: fracao de elementos internos (com os 4 vizinhos ortogonais
 dentro do dominio) cuja classificacao binaria (solido/vazio, limiar 0.5) e
-oposta a de todos os 4 vizinhos — a assinatura geometrica do padrao alternado.
-medido, nao estimado.
+oposta a de todos os 4 vizinhos, a assinatura geometrica do padrao alternado.
 
 saida: resultados/13_checkerboard.png
 """

@@ -58,9 +58,8 @@ python t03_benchmark_brown_unet.py --sufixo _B --vol_ponte 0.45 --vol_console 0.
 `04_benchmark_brown.py` foi a primeira tentativa de acoplamento (CNN da
 compliância no laço do DQN). Ela não entra mais no texto, que usa a U-Net; o
 script fica no repositório como registro. Os `t01`–`t03` desta pasta são cópias
-dos de `tentativa/` (que guarda o histórico das rodadas em
-`tentativa/LEIA-ME_tentativa.txt`), com os caminhos ajustados e, no `t03`, os
-padrões da rodada A.
+dos de `tentativa/`, com os caminhos ajustados e, no `t03`, os padrões do
+modelo A.
 
 Tudo o que a execução gera fica em `resultados/` (e em `tentativa/resultados/`).
 Esta pasta traz, sem alterações, o de uma execução completa a partir de uma
@@ -86,12 +85,12 @@ vez. Os `t01`–`t03` rodaram em 04/11/2026.
   parte, em 03/11, e não consta dele). Os comandos acima não a gravam: ela foi
   obtida redirecionando a saída de cada comando para um arquivo.
 
-Tempo do MEF em `03_surrogates.py`: até 04/11/2026, a função `compliance_fem`
-convolvia a densidade com a matriz 576×576 do filtro, e o tempo de 205 ms que
-aparece em `resultados/console/03.log` era quase todo dessa conta. Corrigida, a
-análise MEF leva 4,8 ms (`resultados/console/03_tempo_mef.log`, medido com
-`--so_tempo_mef`, sem retreinar). Os modelos e as figuras do 03 não mudam, pois a
-função só mede tempo.
+Tempo do MEF em `03_surrogates.py`: o tempo de 205 ms que aparece em
+`resultados/console/03.log` foi medido com uma versão de `compliance_fem` que
+convolvia a densidade com a matriz 576×576 do filtro e não vale. A latência de
+uma análise MEF é 4,8 ms (`resultados/console/03_tempo_mef.log`, medida com
+`--so_tempo_mef`, sem retreinar). Os modelos e as figuras do 03 não dependem
+dessa função, que só mede tempo.
 
 Reprodutibilidade: com os modelos de `resultados/dados/`, as análises (SIMP,
 heurística de remoção, robustez, Monte Carlo, *overhang*, malhas e comparações)

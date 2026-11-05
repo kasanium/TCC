@@ -7,7 +7,7 @@ cada episodio troca a acao do agente por uma acao legal sorteada com
 probabilidade eps (eps = 0 reproduz a trajetoria de referencia do 04).
 casos: os tres do benchmark (cantilever, ponte, console) e casos de apoio e
 carga sorteados. requer brown_original/ (ver README.md) e tensorflow.
-uso: python t01_dados_brown.py [--rapido] [--workers N]
+uso: python 04_a_dados_brown.py [--rapido] [--workers N]
 saida: resultados/dados/brown_tensao_24x24.npz
 """
 
@@ -28,16 +28,15 @@ import tensorflow as tf
 tf.keras.optimizers.Adam = tf.keras.optimizers.legacy.Adam
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
-_BROWN = os.path.join(_DIR, "..", "brown_original")
+_BROWN = os.path.join(_DIR, "brown_original")
 sys.path.insert(0, _BROWN)
 sys.path.insert(0, _DIR)
 
 import numpy as np
 from unittest.mock import patch
 
-# o formato de entrada vive em t02_unet_tensao.py; o nome comeca com letra mas
-# carregamos pelo caminho do arquivo, como nos outros scripts
-_spec = spec_from_file_location("unet_tensao", os.path.join(_DIR, "t02_unet_tensao.py"))
+# o formato de entrada vive em 04_b_unet_tensao.py, carregado pelo caminho do arquivo
+_spec = spec_from_file_location("unet_tensao", os.path.join(_DIR, "04_b_unet_tensao.py"))
 _unet = module_from_spec(_spec)
 _spec.loader.exec_module(_unet)
 mapas_nos = _unet.mapas_nos
@@ -52,14 +51,14 @@ from Top_Opt_RL.DQN.RL_Necessities import Agent
 # parametros
 # ---------------------------------------------------------------------------
 
-# casos de teste no formato do ambiente de brown 22 — mesmos do 04
+# casos de teste no formato do ambiente de brown 22, mesmos do 04
 TEST_CASES = {
     "1_Cantilever": {"bcs": [1, 553],             "downs": [312],        "vol": 0.35},
     "2_Ponte":      {"bcs": [552, 553, 574, 575], "downs": [11, 12, 13], "vol": 0.40},
     "3_Console":    {"bcs": [1, 289, 553],        "downs": [190],        "vol": 0.50},
 }
 
-# padroes = rodada 4 (a do resultado): 48 / 600 / 3 -> 1.944 episodios
+# padroes usados no resultado do texto: 48 / 600 / 3 -> 1.944 episodios
 N_EPIS_CASO_TESTE = 48        # por caso do benchmark: 1 de referencia (eps = 0) + 47 perturbados
 N_CASOS_ALEATORIOS = 600      # combinacoes de apoio/carga sorteadas
 N_EPIS_CASO_ALEATORIO = 3     # por caso sorteado: eps = 0 e eps sorteados
@@ -241,8 +240,8 @@ if __name__ == "__main__":
     args = ap.parse_args()
 
     _HERE = os.path.dirname(os.path.abspath(__file__))
-    # o --rapido grava no mesmo arquivo para permitir testar t02 e t03 de ponta a
-    # ponta; a rodada completa sobrescreve
+    # o --rapido grava no mesmo arquivo (teste rapido de 04_b e 04_c); a coleta
+    # completa sobrescreve
     save_path = os.path.join(_HERE, "resultados", "dados", "brown_tensao_24x24.npz")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
@@ -276,13 +275,9 @@ if __name__ == "__main__":
                       f"{len(r['amostras'])} estados | {r['tempo']:.0f}s | "
                       f"{time.time() - t0:.0f}s total | {r['status']}")
 
-    # junta tudo, removendo estados repetidos entre episodios (o bloco solido
-    # inicial, por exemplo, aparece em todos os episodios do mesmo caso). os
-    # episodios de referencia vao por ultimo: um estado que eles dividem com um
-    # episodio perturbado fica com o perturbado (e entra no treino); na
-    # referencia so sobra o que e exclusivo dela. sem isso o bloco solido de cada
-    # caso, que define a energia de referencia do criterio de parada de brown,
-    # ficava fora do treino
+    # junta tudo sem estados repetidos. os episodios de referencia vao por
+    # ultimo: um estado que dividem com um episodio perturbado (como o bloco
+    # cheio de cada caso) fica com o perturbado e entra no treino
     resultados.sort(key=lambda r: (r["caso"] < 3 and r["eps"] == 0.0, r["ep_id"]))
     solido_l, idx_l, vm_el_l, vm_nn_l, se_l = [], [], [], [], []
     ep_l, caso_l, eps_l, ref_l = [], [], [], []

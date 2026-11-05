@@ -1,6 +1,6 @@
 """
-arquitetura da cnn substituta (entrada de 3 canais: densidade, fx, fy —
-banga 18; pilha 32/64/128 — kumarn 25) e treino/benchmark
+arquitetura da cnn substituta (entrada de 3 canais: densidade, fx, fy ,
+banga 18; pilha 32/64/128, kumarn 25) e treino/benchmark
 dos tres substitutos (rf, gp+pca, cnn) sobre o dataset do 02. split
 treino/teste por run_id (groupshufflesplit, sem vazamento entre iteracoes
 da mesma execucao). alvo: log1p(compliancia).
@@ -45,10 +45,7 @@ FEMSolver = _mod.FEMSolver
 
 
 # --- fonte casada com o corpo do texto -------------------------------------
-# este script tem duas figuras de larguras diferentes (curvas de aprendizado
-# 9 pol.; comparacao dos substitutos, empilhada em 1 coluna, 6.3 pol.), entao
-# usamos um _pt_de(w) por figura em vez de uma unica largura_fig_pol global
-# (mesmo ajuste feito em 09_resultados_cantilever.py).
+# duas figuras de larguras diferentes: um _pt_de(w) por figura
 LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do uspsc (a4, margens 3 cm / 2 cm)
 def _pt_de(W, p=12): return p * (W / LARGURA_MANCHA_POL)  # pt na pagina -> pt no matplotlib
 _pt = lambda p: _pt_de(9.0, p)  # default: curvas de aprendizado (figsize largura 9)
@@ -164,10 +161,6 @@ def compliance_fem(density, solver):
 
     usada apenas para medir a latencia do mef na secao 3; o valor retornado
     nao alimenta as figuras de acuracia.
-    correcao (04/11/2026): a versao anterior convolvia a densidade 24x24 com
-    solver.H, que e a matriz densa 576x576 do filtro e nao um nucleo de
-    convolucao; essa conta, sem sentido fisico, respondia por quase todo o
-    tempo medido (~400 ms contra ~6 ms do mef numa maquina de teste).
     """
     _, ce, _ = solver.solve(density)
     return float(np.sum(ce))
@@ -245,7 +238,7 @@ def train_gp(X_train_flat, Y_train_log, n_pca):
 
 
 # ---------------------------------------------------------------------------
-# secao 1 — treino e curvas de aprendizado
+# secao 1: treino e curvas de aprendizado
 # ---------------------------------------------------------------------------
 
 def secao1_treino(xt_flat, xe_flat, yt_log, ye_log, ye_lin,
@@ -370,7 +363,7 @@ def secao1_treino(xt_flat, xe_flat, yt_log, ye_log, ye_lin,
 
 
 # ---------------------------------------------------------------------------
-# secao 3 — benchmark de latencia substituto vs mef
+# secao 3: benchmark de latencia substituto vs mef
 # ---------------------------------------------------------------------------
 
 def secao3_benchmark(X_test_dens, X_test_flat, Y_test, X_test_cnn,
@@ -409,9 +402,7 @@ def secao3_benchmark(X_test_dens, X_test_flat, Y_test, X_test_cnn,
         r = results[n]
         print(f"  {n:<10} {r['t_us']:.1f} µs/am  {r['mae']:>8.2f} {r['r2']:>8.4f} {r['speedup']:>9.0f}x")
 
-    # empilhados em 1 coluna: com 3 paineis lado a lado cada um teria so
-    # largura_mancha_pol/3 = 2.1 pol. de pagina, pouco para os rotulos dos
-    # eixos e a legenda em fonte real de 12 pt
+    # uma coluna: lado a lado, os 3 paineis nao comportam a fonte de 12 pt
     vmin, vmax = Y_test.min(), Y_test.max()
     _pt3 = lambda p: _pt_de(LARGURA_MANCHA_POL, p)
     fig, axes = plt.subplots(3, 1, figsize=(LARGURA_MANCHA_POL, 4.6 * 3))
@@ -505,7 +496,7 @@ if __name__ == "__main__":
     ye_log = y_log[id_te]
     ye_lin = y_lin[id_te]
 
-    # cnn: tensor de 3 canais (densidade, fx_map, fy_map) — banga 18
+    # cnn: tensor de 3 canais (densidade, fx_map, fy_map), banga 18
     x_cnn_all = np.stack([x_raw, fx_maps, fy_maps], axis=1).astype(np.float32)
     xt_cnn = torch.FloatTensor(x_cnn_all[id_tr])
     xe_cnn = torch.FloatTensor(x_cnn_all[id_te])
@@ -519,8 +510,7 @@ if __name__ == "__main__":
     solver.F = np.zeros(solver.ndof)
     solver.F[2 * node_mid + 1] = -1.0
 
-    # --so_tempo_mef: mede so a latencia do mef, sem treinar nada, para
-    # atualizar o tempo citado no texto sem refazer os modelos
+    # --so_tempo_mef: mede so a latencia do mef, sem treinar
     if "--so_tempo_mef" in sys.argv:
         t_us = tempo_mef_us(x_raw[id_te], solver)
         print(f"FEM: {t_us/1000:.3f} ms/amostra ({N_FEM_TIMING} amostras do teste)")

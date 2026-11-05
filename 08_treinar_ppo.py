@@ -4,9 +4,8 @@ maskableppo + politica totalmente convolucional (06) sobre o ambiente 05.
 recompensa telescopica com gamma=1.0, n_steps automatico cobrindo o
 episodio inteiro com folga, batch 1024, 4 epocas, ent_coef 3e-3 (recalibrado
 para ~900 acoes). callback salva best_model.zip pela menor compliancia num
-episodio greedy deterministico. --resume restaura pesos com protecao contra
-o _setup_model do sb3 (que recriaria a politica do zero sem aviso) e
-imprime o c_greedy do checkpoint carregado antes de gastar horas de treino.
+episodio greedy deterministico. --resume retoma um checkpoint e imprime o
+c_greedy dele antes de continuar.
 --simetria horizontal remove pares elemento+espelho (usado no cantilever).
 --dfam_peso ativa a penalidade de overhang do ambiente (ver 05); variacoes
 de seed e de dfam salvam em diretorios com sufixo, preservando o canonico.
@@ -225,10 +224,8 @@ def load_model(resume, env, lr=3e-4, ent_coef=None, n_steps=None,
     model.target_kl = target_kl
     if n_steps is not None and n_steps != model.n_steps:
         print(f"  n_steps: {model.n_steps} -> {n_steps}")
-        # atencao: _setup_model() do sb3 recria self.policy do zero, o que
-        # apagaria sem aviso os pesos recem-carregados (o treino seguiria
-        # a partir de pesos aleatorios). salva e restaura o state_dict em
-        # volta da chamada; o otimizador e reiniciado.
+        # _setup_model() do sb3 recria self.policy do zero: salva e restaura o
+        # state_dict em volta da chamada (o otimizador e reiniciado)
         estado = {k: v.clone() for k, v in model.policy.state_dict().items()}
         model.n_steps = n_steps
         model._setup_model()
@@ -265,8 +262,7 @@ def train_phase(nelx, nely, vol_frac, total_timesteps, n_envs, seed,
                            n_steps=n_steps, batch_size=batch_size,
                            n_epochs=n_epochs, gamma=gamma,
                            clip_range=clip_range, target_kl=target_kl)
-        # confere que os pesos sobreviveram ao carregamento antes de gastar
-        # horas de treino em cima de um checkpoint que virou ruido
+        # confere que os pesos sobreviveram ao carregamento
         c0 = _avaliar_greedy(model, nelx, nely, vol_frac, problem_type,
                              simetria=simetria)
         print(f"  checkpoint carregado: C_greedy = {c0:.4f}")
@@ -309,9 +305,7 @@ REFERENCIAS = {
     ("automotive", 30, 30, 0.30): (20.72, 20.42, 1.5),
     ("cantilever", 20, 10, 0.50): (66.75, 71.66, 0.0),
 }
-# com simetria horizontal: o par elemento+espelho e mais restritivo,
-# o filtro inverte de papel (ajuda em vez de atrapalhar) — ver
-# 05_ambiente_rl.py (rodar_guloso)
+# com simetria horizontal o filtro ajuda (ver rodar_guloso no 05)
 REFERENCIAS_SIMETRIA = {
     ("cantilever", 20, 10, 0.50): (66.75, 78.90, 1.5),
 }

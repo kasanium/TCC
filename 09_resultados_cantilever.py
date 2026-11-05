@@ -2,7 +2,7 @@
 avaliacao do agente ppo do cantilever 20x10 (checkpoint treinado por
 08_treinar_ppo.py --problem cantilever --simetria horizontal):
   (a) tabela e curvas de treino (recompensa media movel vs passos);
-  (b) comparacao de topologias no dominio 2:1 — simp vs dqn de brown 22 (bcs a 1/4 e 3/4 da altura da malha 24x24) vs ppo;
+  (b) comparacao de topologias no dominio 2:1, simp vs dqn de brown 22 (bcs a 1/4 e 3/4 da altura da malha 24x24) vs ppo;
   (c) simp binarizado nativo em 20x10, mesma malha do agente, sem upscaling,
       para uma comparacao de compliancia justa entre metodos.
 
@@ -56,9 +56,7 @@ sys.modules["politica_fcn"] = _m06
 _s06.loader.exec_module(_m06)
 
 # --- fonte casada com o corpo do texto -------------------------------------
-# este script gera figuras com larguras de figsize diferentes (9" nas curvas
-# de treino, 15" na comparacao com o brown); por isso o fator de escala e
-# calculado por figura via _pt_de(w), nao por uma constante global.
+# figuras de larguras diferentes: um _pt_de(w) por figura
 LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do uspsc (a4, margens 3 cm / 2 cm)
 def _pt_de(W, p=12): return p * W / LARGURA_MANCHA_POL
 
@@ -347,7 +345,7 @@ def simp_binarizado_nativo(d_simp_continuo, solver_20x10, vf=VOL_FRAC,
 
 def varredura_sementes(c_ref):
     """avalia checkpoints de sementes extras (v21_cantilever_20x10_seed*/)
-    e imprime media e desvio do c_greedy — estabilidade do treino."""
+    e imprime media e desvio do c_greedy, estabilidade do treino."""
     import glob
     pads = sorted(glob.glob(os.path.join(
         _DIR, "resultados", "dados", "v21_cantilever_20x10_seed*",

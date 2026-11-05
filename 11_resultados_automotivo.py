@@ -68,10 +68,7 @@ _OUTDIR = os.path.join(_DIR, "resultados")
 os.makedirs(_OUTDIR, exist_ok=True)
 
 # --- fonte casada com o corpo do texto -------------------------------------
-# grade 2x2 em vez de 1x4: um titulo de 2 linhas em fonte real de 12 pt
-# estoura o painel de 4 colunas, e encolher a figura nao resolve (a razao
-# texto/painel nao depende da largura total)
-LARGURA_FIG_POL = 9.0         # largura do figsize deste script (grade 2x2, ver nota)
+LARGURA_FIG_POL = 9.0         # largura do figsize deste script
 LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do uspsc (a4, margens 3 cm / 2 cm)
 _ESC = LARGURA_FIG_POL / LARGURA_MANCHA_POL
 def _pt(p): return p * _ESC   # pt desejado na pagina -> pt no matplotlib
@@ -152,7 +149,7 @@ def episodio_greedy(model_path, seed=0):
 
 def varredura_sementes(c_ref, seed=0):
     """avalia checkpoints de sementes extras (v21_automotivo_30x30_seed*/)
-    e imprime media e desvio do c_greedy — estabilidade do treino."""
+    e imprime media e desvio do c_greedy, estabilidade do treino."""
     import glob
     pads = sorted(glob.glob(os.path.join(
         _DIR, "resultados", "dados", "v21_automotivo_30x30_seed*",
@@ -254,20 +251,14 @@ if __name__ == "__main__":
 
     varredura_sementes(c_ppo, args.seed)
 
-    # figura de 3 paineis horizontais: (a) simp puro, (b) ppo bruto, (c) von
-    # mises do ppo bruto. o polimento (xb_pol/c_pol_bin/vm_pol) continua
-    # calculado e salvo no .npz porque 12_analises_automotivo.py consome a
-    # chave "polido".
-    # clip para emin (nao 0.0 puro): fe() usa penalizacao simp sem piso emin
-    # (x^p puro, ver 01_fem_simp.py), entao elementos com densidade exatamente
-    # zero deixam a matriz de rigidez singular (acusado por "dgstrf info 1"
-    # do solver esparso) e o campo de von mises resultante sai todo nan/zero.
+    # figura: (a) simp, (b) ppo bruto, (c) von mises do ppo bruto; o polimento
+    # vai so para o .npz (chave "polido", usada pelo 12). clip em emin: fe()
+    # usa x^p sem piso, e densidade exatamente zero deixa k singular
     xb_ppo = np.clip((x_ppo > 0.5).astype(float), EMIN, 1.0)
     _, vm_ppo = avaliar(xb_ppo, bc)
     vm_ppo_show = vm_ppo.copy()
     vm_ppo_show[bc["void"]] = 0.0
 
-    # titulos sem cor: texto sempre preto
     fig, axes = plt.subplots(1, 3, figsize=(9.0, 3.4), gridspec_kw={"wspace": 0.15})
     paineis = [
         (1.0 - xb_simp, "gray",

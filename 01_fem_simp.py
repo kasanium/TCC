@@ -334,9 +334,7 @@ if __name__ == "__main__":
     # caso00: verificacao contra kharmanda 04; caso02: malha do projeto
     casos = [
         {
-            # verificacao contra a literatura: mantido em campo continuo (cinza),
-            # fiel a como o resultado de referencia e reportado. nao binarizar
-            # este caso.
+            # kharmanda reporta o campo continuo: este caso nao e binarizado
             "nome": "caso00_original",
             "nelx": 32, "nely": 20, "volfrac": 0.4, "penal": 3.0, "rmin": 1.2,
             "carga": "canto_inferior_direito", "binarizar_display": False,
@@ -345,9 +343,7 @@ if __name__ == "__main__":
             "nome": "caso02_novo",
             "nelx": 20, "nely": 10, "volfrac": 0.5, "penal": 3.0, "rmin": 1.5,
             "carga": "meio_direita", "binarizar_display": True,
-            # 200 iteracoes fixas, sem parada antecipada: mesmo criterio de
-            # 09_resultados_cantilever.py:roda_simp() (simp_max_iters), para o campo
-            # continuo ser identico ao usado nas comparacoes com o ppo.
+            # 200 iteracoes fixas, como simp_max_iters do 09
             "iters_fixos": 200,
         },
     ]
@@ -398,11 +394,8 @@ if __name__ == "__main__":
 
         _, _, ce_map, vm_map = sensitivity_analysis(nelx, nely, x, penal, U)
 
-        # topologia exibida: caso00 (kharmanda) fica em campo continuo, fiel a
-        # referencia; caso02 e binarizado, mantido so o maior componente conexo
-        # e polido por algumas iteracoes simp na propria malha (a binarizacao
-        # por percentil deixava um vazio encostando no engaste). a compliancia
-        # reportada e a do campo continuo.
+        # caso02 e exibido binarizado (maior componente conexo + polimento simp);
+        # a compliancia reportada e a do campo continuo
         if caso.get("binarizar_display"):
             import scipy.ndimage
             cutoff = np.percentile(x, (1 - volfrac) * 100)

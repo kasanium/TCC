@@ -7,16 +7,15 @@ energia de deformacao (log10). a saida e convertida para o mesmo formato que
 FEASolve devolve (ver saida_formato_brown), para que o agente receba a mesma
 observacao que receberia do mef.
 diferenca para a cnn do 03: aquela preve so a compliancia, e o agente de
-brown decide pelo campo de tensoes; sem o campo, a etapa 24x24 nao roda
-(ver LEIA-ME_tentativa.txt).
+brown decide pelo campo de tensoes; sem o campo, a etapa 24x24 nao roda.
 split treino/teste por episodio (groupshufflesplit, sem vazamento entre
 estados do mesmo episodio). as trajetorias de referencia (eps = 0) dos tres
 casos do benchmark ficam fora do treino e sao avaliadas a parte (so os
 estados exclusivos delas: estado dividido com episodio perturbado vai para o
-treino, ver t01). com --holdout, todo estado com as condicoes de contorno de um
+treino, ver 04_a). com --holdout, todo estado com as condicoes de contorno de um
 caso do benchmark sai do treino e da validacao.
-entrada: resultados/dados/brown_tensao_24x24.npz (t01)
-saidas: resultados/t02_unet_tensao.png,
+entrada: resultados/dados/brown_tensao_24x24.npz (04_a)
+saidas: resultados/04_b_unet_tensao.png,
 resultados/dados/unet_tensao_brown_24x24.pth
 """
 
@@ -81,7 +80,7 @@ CORES = {"U-Net": "#004488", "ideal": "#888888"}
 
 
 # ---------------------------------------------------------------------------
-# formato de entrada (usado tambem por t01 e t03; manter identico)
+# formato de entrada (usado tambem por 04_a e 04_c; manter identico)
 # ---------------------------------------------------------------------------
 
 def mapas_nos(lc_nodes, load_dirs, bc_nodes, ex=EX, ey=EY):
@@ -162,7 +161,7 @@ class UNetTensao(nn.Module):
         zerada nos vazios), somada no dominio -> log10(energia) padronizado. a
         energia de deformacao e a soma das energias dos elementos, entao a rede
         so precisa aprender a densidade local
-    cabeca de energia (aditiva=False, rodadas 1-3): media global do gargalo
+    cabeca de energia (aditiva=False): media global do gargalo
     """
 
     def __init__(self, c_in=4, aditiva=True):
@@ -206,7 +205,7 @@ class UNetTensao(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# uso do modelo treinado (t03 importa estas funcoes)
+# uso do modelo treinado (04_c importa estas funcoes)
 # ---------------------------------------------------------------------------
 
 def carregar_unet(caminho):
@@ -418,11 +417,11 @@ if __name__ == "__main__":
     _HERE = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(_HERE, "resultados", "dados", "brown_tensao_24x24.npz")
     out_model = os.path.join(_HERE, "resultados", "dados", f"unet_tensao_brown_24x24{suf}.pth")
-    out_fig = os.path.join(_HERE, "resultados", f"t02_unet_tensao{suf}.png")
+    out_fig = os.path.join(_HERE, "resultados", f"04_b_unet_tensao{suf}.png")
     os.makedirs(os.path.dirname(out_model), exist_ok=True)
 
     if not os.path.exists(data_path):
-        print("erro: dataset nao encontrado. rode t01_dados_brown.py antes.")
+        print("erro: dataset nao encontrado. rode 04_a_dados_brown.py antes.")
         sys.exit(1)
 
     d = np.load(data_path)
@@ -444,7 +443,7 @@ if __name__ == "__main__":
                for i in range(0, len(vm_el), max(1, len(vm_el) // 200)))
     print(f"sanidade reconstruir_vm_nn x FEASolve[3]: max |dif| = {diff:.2e} (esperado ~1e-6)")
     if diff > 1e-3:
-        print("erro: a normalizacao nao bate com a de brown; nao siga para o t03.")
+        print("erro: a normalizacao nao bate com a de brown; nao siga para o 04_c.")
         sys.exit(1)
 
     X = montar_entrada(solido, mapas)
@@ -458,7 +457,7 @@ if __name__ == "__main__":
     if args.holdout:
         # combinacao (BC_Nodes, LC_Nodes, Load_Directions) de cada caso do benchmark =
         # mapa mais frequente nos episodios do caso (os outros mapas desses episodios
-        # vem da 1a chamada, com apoios sorteados). o t01 deduplica os mapas byte a
+        # vem da 1a chamada, com apoios sorteados). o 04_a deduplica os mapas byte a
         # byte, entao combinacao igual = mesmo indice, inclusive em caso sorteado
         bench_mapas = [int(np.bincount(mapa_idx[caso == c]).argmax()) for c in range(3)]
         por_mapa = np.isin(mapa_idx, bench_mapas)
@@ -545,7 +544,7 @@ if __name__ == "__main__":
     m_alvo = m_ref if m_ref is not None else m_te
     if m_alvo["top1_top5"] < 0.8 or m_alvo["spearman"] < 0.9:
         print("aviso: com esse erro o agente provavelmente vai escolher elementos diferentes "
-              "do que escolheria com o mef. rode o t03 mesmo assim e compare as topologias.")
+              "do que escolheria com o mef. rode o 04_c mesmo assim e compare as topologias.")
 
     # --- figura -------------------------------------------------------------
     fig, axs = plt.subplots(2, 3, figsize=(13, 8.6))

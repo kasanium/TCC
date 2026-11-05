@@ -9,33 +9,21 @@ soma no episodio e o proprio objetivo (potential-based shaping, ng 99); treino c
 de brown 22. simetria="horizontal" (opcional) remove cada
 elemento junto do espelho e so libera pares que preservam um unico
 componente; requer bcs simetricas (assert no __init__). compliancia u^t f
-via femsolverrl (brown 22). thin_threshold (espessura minima)
-existe mas fica desligado por padrao: medido inerte em 0.00-0.45 e
-travando episodios em ~0.60 (ver testes em 07_testes_ambiente.py).
+via femsolverrl (brown 22). thin_threshold (espessura minima) fica
+desligado por padrao (ver 07).
 
 rodar_guloso() e o baseline eso (querin 98; criterio de remocao por
 baixa tensao como na eq. 3 de deaton 14) no mesmo espaco de
 acoes do agente: a cada passo remove o elemento valido de menor tensao,
-com filtro de sensibilidade opcional (sigmund 01). o raio do filtro nao
-transfere entre malhas: em 30x30 o guloso com rmin=1.5 chega a c = 20.42; em 20x10 filtrar piora
-(71.66 -> 82.45), e sob simetria o efeito inverte de novo.
+com filtro de sensibilidade opcional (sigmund 01); o melhor raio depende
+da malha (ver 08).
 
-penalidade de overhang opcional (dfam_peso > 0): a cada passo a recompensa
-recebe -dfam_peso*(viol_t - viol_{t-1}), onde viol e a fracao de elementos
-solidos em violacao da regra de 45 graus para a base de impressao
-dfam_base (mesma metrica de 12_analises_automotivo.py). a soma no episodio
-telescopa para -dfam_peso*(viol_t - viol_0), entao o retorno vira
-k*log(c_0/c_t) - dfam_peso*viol_t (viol_0 e a do dominio inicial), um
-trade-off explicito rigidez x fabricabilidade. a regra de
-45 graus e a de ibhadode 23 e dangal 23, que
-tambem medem o custo em compliancia de restringir overhang na ot
-classica; incorporar a restricao como termo de penalidade no objetivo e
-o metodo de penalidade usual; e penalizar o incremento a cada passo (em
-vez de um termo esparso so no fim) segue a recomendacao de recompensas
-densas para problemas fisicos de mozaffar 20. a
-soma por episodio equivale ao termo terminal; o peso e calibrado
-empiricamente por varredura. desligada por padrao (dfam_peso=0), custo
-zero quando desligada.
+penalidade de overhang opcional (dfam_peso > 0): a recompensa recebe
+-dfam_peso*(viol_t - viol_{t-1}), com viol a fracao de solidos em violacao
+da regra de 45 graus (ibhadode 23; dangal 23) para a base dfam_base, a
+mesma metrica do 12. a soma telescopa e o retorno vira
+k*log(c_0/c_t) - dfam_peso*viol_t. o termo a cada passo, e nao so no fim,
+segue as recompensas densas de mozaffar 20. desligada por padrao.
 """
 
 import os
@@ -384,11 +372,8 @@ class TopoOptMaskEnv(gym.Env):
     def _symmetric_mask(self, solid):
         """mascara sob simetria horizontal: candidato i so e valido se
         remover {i, mirror(i)} juntos preservar um unico componente conexo.
-        bruteforce por candidato (scipy.ndimage.label a cada um) — o(n)
-        rotulagens por passo, mais caro que o metodo de pontos de
-        articulacao, mas o cantilever (200 elementos) roda isso sem custo
-        perceptivel. i == mirror(i) so ocorre com nely impar (nao usado
-        neste tcc); tratado mesmo assim por completude."""
+        forca bruta por candidato (scipy.ndimage.label): mais caro que os
+        pontos de articulacao, mas barato no cantilever (200 elementos)."""
         solid_flat = solid.flatten()
         base_ok = solid_flat & ~self._protected_flat
         ok = np.zeros(self.n_elements, dtype=bool)
@@ -510,7 +495,7 @@ class TopoOptMaskEnv(gym.Env):
         self.n_removed += 1
         if self.simetria == "horizontal":
             # remove tambem o espelho na mesma transicao (um so solve de mef
-            # para o par) — a mascara ja garantiu que o par preserva
+            # para o par), a mascara ja garantiu que o par preserva
             # conectividade. j == action so com nely impar (nao usado aqui).
             j = int(self._mirror_flat[action])
             if j != action:
@@ -535,7 +520,7 @@ class TopoOptMaskEnv(gym.Env):
         c_prev = max(float(self.current_compliance), 1e-12)
         c_t = max(float(new_compliance), 1e-12)
         if self.reward_mode == "brown":
-            # forma original de brown 22, eq. 4 — mantida para
+            # forma original de brown 22, eq. 4, mantida para
             # reproduzir a recompensa original
             reward = ((self.initial_compliance / c_t) ** 2
                       + (self.n_removed / self.n_elements) ** 2)

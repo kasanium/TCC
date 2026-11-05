@@ -1,5 +1,5 @@
 """
-injeta a u-net de campo (t02) no lugar do mef de brown 22 na
+injeta a u-net de campo (04_b) no lugar do mef de brown 22 na
 malha fina 24x24 do refinamento progressivo e compara com o dqn original e o
 simp nos tres casos do 04. diferente do 04, o substituto devolve o campo de
 tensao no formato que o agente usa como observacao, e nao um campo constante.
@@ -7,11 +7,10 @@ alem do tempo, o script conta as chamadas ao mef e ao substituto na malha
 24x24, mede quantos elementos o agente removeu na etapa fina e reavalia a
 topologia final com o mef real (a energia do substituto nao entra nessa conta).
 metas de volume: cantilever 0,35, ponte e console 0,45 (escolhidas so com o mef,
-antes da u-net; ver metas_escolha.csv). --modelo e --sufixo escolhem o modelo
-(_A: treinado tambem com episodios do benchmark; _B: --holdout do t02).
-requer brown_original/ (ver README.md), tensorflow e o modelo do t02.
-saidas: resultados/t03_benchmark_brown_unet.png,
-resultados/t03_benchmark_brown_unet.csv
+antes da u-net). --modelo e --sufixo escolhem o modelo
+(_A: treinado tambem com episodios do benchmark; _B: --holdout do 04_b).
+requer brown_original/ (ver README.md), tensorflow e o modelo do 04_b.
+saidas: resultados/04_c_benchmark_brown_unet_A.{png,csv} (sufixo de --sufixo)
 """
 
 import os
@@ -55,9 +54,9 @@ plt.rcParams.update({
     "savefig.dpi": 300, "savefig.bbox": "tight", "savefig.facecolor": "white",
 })
 
-# a u-net e o formato de saida vivem em t02_unet_tensao.py; o solver do simp
+# a u-net e o formato de saida vivem em 04_b_unet_tensao.py; o solver do simp
 # em 01_fem_simp.py. carregamos pelos caminhos dos arquivos
-_spec = spec_from_file_location("unet_tensao", os.path.join(_DIR, "t02_unet_tensao.py"))
+_spec = spec_from_file_location("unet_tensao", os.path.join(_DIR, "04_b_unet_tensao.py"))
 _unet = module_from_spec(_spec)
 _spec.loader.exec_module(_unet)
 
@@ -72,7 +71,7 @@ from Top_Opt_RL.DQN.main import EnviromentsRL, TopOpt_Designing
 from Top_Opt_RL.DQN.FEA_SOLVER_GENERAL import FEASolve
 from Top_Opt_RL.DQN.Matrix_Transforms import Mesh_Transform
 
-# casos de teste no formato do ambiente de brown 22 — mesmos do 04
+# casos de teste no formato do ambiente de brown 22, mesmos do 04
 TEST_CASES = {
     "1_Cantilever": {"bcs": [1, 553],             "downs": [312],        "vol": 0.35},
     "2_Ponte":      {"bcs": [552, 553, 574, 575], "downs": [11, 12, 13], "vol": 0.40},
@@ -84,10 +83,10 @@ TEST_CASES = {
 N_THREADS_TORCH = 1
 torch.set_num_threads(N_THREADS_TORCH)
 
-# argumentos lidos ja na importacao (o diag_parada.py importa este modulo):
+# argumentos lidos ja na importacao:
 # --modelo escolhe o .pth; --sufixo separa csv e figura de cada modelo; as
 # metas de volume da ponte e do console sao as escolhidas so com o mef
-# (metas_escolha.py), antes de rodar a u-net
+# antes de rodar a u-net
 import argparse
 _ap = argparse.ArgumentParser()
 _ap.add_argument("--modelo", default=os.path.join(_DIR, "resultados", "dados",
@@ -106,7 +105,7 @@ try:
     unet, unet_norm = _unet.carregar_unet(_UNET_PATH)
     print(f"U-Net carregada: {_UNET_PATH}")
 except FileNotFoundError:
-    print("erro: u-net nao encontrada. rode t01 e t02 antes.")
+    print("erro: u-net nao encontrada. rode 04_a e 04_b antes.")
     sys.exit(1)
 
 
@@ -270,7 +269,7 @@ def run_brown(config, use_surrogate):
                         envs.env.BC_Nodes, Stress=True)
     se_real = float(np.max(res_real[1]))
 
-    # o que a u-net diria dessa mesma topologia final (criterio: acerta no que importa)
+    # previsao da u-net para a mesma topologia final
     sol = (final > 0.5).astype(np.float32)
     mapas = _unet.mapas_nos(envs.env.LC_Nodes, envs.env.Load_Directions, envs.env.BC_Nodes)
     se_unet, vm_u = _unet.prever_brown(unet, unet_norm, sol, mapas)
@@ -294,8 +293,8 @@ def run_brown(config, use_surrogate):
 
 if __name__ == "__main__":
     _HERE = os.path.dirname(os.path.abspath(__file__))
-    _OUT = os.path.join(_HERE, "resultados", f"t03_benchmark_brown_unet{ARGS.sufixo}.png")
-    _CSV = os.path.join(_HERE, "resultados", f"t03_benchmark_brown_unet{ARGS.sufixo}.csv")
+    _OUT = os.path.join(_HERE, "resultados", f"04_c_benchmark_brown_unet{ARGS.sufixo}.png")
+    _CSV = os.path.join(_HERE, "resultados", f"04_c_benchmark_brown_unet{ARGS.sufixo}.csv")
     os.makedirs(os.path.dirname(_OUT), exist_ok=True)
     print(f"modelo: {_UNET_PATH} | metas: " +
           ", ".join(f"{k} {v['vol']:.2f}" for k, v in sorted(TEST_CASES.items())))
@@ -306,8 +305,7 @@ if __name__ == "__main__":
     run_brown(TEST_CASES["3_Console"], use_surrogate=False)
     run_brown(TEST_CASES["3_Console"], use_surrogate=True)
 
-    # titulos e rotulo de speedup curtos: com 3 colunas cada painel tem so
-    # largura_mancha_pol/3 = 2.1 pol. de pagina em fonte real de 12 pt
+    # titulos curtos: cada painel tem 2,1 pol. de largura na pagina
     nc = len(TEST_CASES)
     fig, axs = plt.subplots(nc, 3, figsize=(13, 4 * nc))
     titles = ["SIMP", "DQN (ref.)", "DQN+U-Net"]
@@ -329,7 +327,7 @@ if __name__ == "__main__":
             linhas.append({"caso": name, "metodo": metodo, "vf_alvo": config["vol"],
                            **{k: (round(v, 6) if isinstance(v, float) else v) for k, v in m.items()}})
 
-        # criterios combinados com a vicky (ver LEIA-ME_tentativa.txt, secao 8)
+        # criterios da comparacao: mesma etapa 24x24, mesma vf, qualidade pelo mef real e custo
         razao_se = m_surr["se_real"] / m_orig["se_real"]
         rem_u, rem_r = m_surr["remocoes_24"], m_orig["remocoes_24"]
         c_mef_ms = 1e3 * m_orig["t_mef_576"] / max(m_orig["mef_576"], 1)
@@ -356,10 +354,9 @@ if __name__ == "__main__":
               f"{m_surr['erro_se_final_pct']:+.1f}% | Spearman da observacao na "
               f"topologia final = {m_surr['spearman_obs_final']:.3f}")
 
-        # arredonda os tempos antes de calcular o speedup, para o rotulo bater
-        # com a conta feita a mao a partir dos tempos impressos na figura
+        # speedup calculado com os tempos arredondados da figura
         t_orig_r, t_surr_r = round(t_orig, 1), round(t_surr, 1)
-        nome_limpo = f"({row + 1}) {name.split('_', 1)[1]}"  # sem underscore literal
+        nome_limpo = f"({row + 1}) {name.split('_', 1)[1]}"
         resultados = [
             (r_simp, nome_limpo, "gray_r"),
             (r_orig, f"{t_orig_r:.1f} s".replace(".", ","), "Blues"),

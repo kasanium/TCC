@@ -1,8 +1,8 @@
 """
 testes do ambiente (05): equivalencia exata da mascara por pontos de
 articulacao contra a forca bruta (scipy.ndimage.label), cache por estado,
-terminacao limpa por deadlock, inercia da restricao de espessura minima
-(regressao do diagnostico que a deixou desligada), simetria horizontal
+terminacao limpa por deadlock, inercia da restricao de espessura minima,
+simetria horizontal
 (densidade simetrica e conexa em todo passo + mascara verificada por forca
 bruta), penalidade dfam (peso 0 inerte, deslocamento exato do retorno),
 fumaca da politica fcn (06) e fumaca de treino do 08. os dois
@@ -29,7 +29,7 @@ TopoOptMaskEnv = _m.TopoOptMaskEnv
 
 def _random_state(env, rng, n_remove):
     """leva o env a um estado conexo aleatorio removendo via mascara (sem
-    reavaliar o mef a cada passo — so a topologia importa para este teste)."""
+    reavaliar o mef a cada passo, so a topologia importa para este teste)."""
     env.reset(seed=int(rng.integers(1e9)))
     for _ in range(n_remove):
         mask = env.get_action_mask()
@@ -83,12 +83,9 @@ def _rollout_aleatorio(nx, ny, vf, ptype, thin_threshold, seed):
 
 
 def test_espessura_minima():
-    """documenta (e protege contra regressao de) o diagnostico da restricao de espessura: sob
-    politica aleatoria e mesma semente, thin_threshold in {0.0, 0.30, 0.45}
-    devem produzir a mesma compliancia final (a restricao nunca vincula
-    nessa faixa), e 0.60 deve vincular e produzir deadlock. ver a
-    docstring de 05_ambiente_rl.py — a restricao fica desligada por
-    padrao exatamente por causa disto."""
+    """sob politica aleatoria e mesma semente, thin_threshold em {0.0, 0.30,
+    0.45} da a mesma compliancia final (a restricao nao vincula) e 0.60
+    vincula e gera deadlock; por isso ela fica desligada por padrao."""
     for (ptype, nx, ny, vf) in [("cantilever", 20, 10, 0.5),
                                 ("automotive", 30, 30, 0.3)]:
         c_base, dl_base = _rollout_aleatorio(nx, ny, vf, ptype, 0.0, seed=0)
@@ -216,7 +213,7 @@ def test_dfam():
 
 def test_v21_politica_fcn_smoke():
     """topofcnpolicy (06) constroi, treina alguns milhares de
-    passos com maskableppo e salva/recarrega sem erro — a mesma politica
+    passos com maskableppo e salva/recarrega sem erro, a mesma politica
     usada por 08_treinar_ppo.py."""
     from sb3_contrib import MaskablePPO
     from sb3_contrib.common.wrappers import ActionMasker

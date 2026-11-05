@@ -43,10 +43,7 @@ penal = 3.0
 # dataset sem alterar a compliancia de cada amostra capturada.
 RMIN_OPTIONS = [1.2, 1.5, 2.0, 2.5]
 
-# cutoff de compliancia: captura todo o espectro operacional do simp. as
-# iteracoes iniciais (malha homogenea) tem c ~ 320; cortar baixo descartaria os
-# dados de alta compliancia necessarios para variancia. como capturamos
-# iteracoes intermediarias (e nao topologias finais), o teto e alto por escolha.
+# teto de compliancia: as iteracoes iniciais (malha homogenea) tem c ~ 320
 c_cutoff = 320.0
 
 rng = np.random.default_rng(seed)

@@ -113,8 +113,7 @@ class TopoFCNPolicy(MaskableActorCriticPolicy):
 
     def _build(self, lr_schedule) -> None:
         super()._build(lr_schedule)
-        # os logits ja saem da cabeca convolucional; nada de camada densa
-        # de 64 -> nelx*nely no caminho
+        # os logits ja saem da cabeca convolucional
         self.action_net = nn.Identity()
         # o sb3 inicializa a action_net com ganho 0.01 para a politica comecar
         # quase uniforme; como a saida agora vem de dentro do mlp_extractor

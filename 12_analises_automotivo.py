@@ -13,7 +13,7 @@ analises pos-otimizacao do suporte automotivo 30x30:
   malha    : re-otimizacao em 30x30, 60x60 e 90x90 com escala fisica do
              filtro constante (rmin 1.5/3.0/4.5) e geometria fisica
              constante (furos e olhais escalados em ponto flutuante em
-             build_bcs) — teste canonico de independencia de malha do simp
+             build_bcs), teste canonico de independencia de malha do simp
              (sigmund 01).
 
 saidas: resultados/12_robustez.{png,csv}, 12_dfam.{png,csv}, 12_malha.png
@@ -55,9 +55,7 @@ _OUTDIR = os.path.join(_DIR, "resultados")
 os.makedirs(_OUTDIR, exist_ok=True)
 
 # --- fonte casada com o corpo do texto -------------------------------------
-# este script gera figuras com larguras de figsize diferentes (robustez,
-# dfam e malha); por isso o fator de escala e calculado por figura via
-# _pt_de(w), nao por uma constante global.
+# figuras de larguras diferentes: um _pt_de(w) por figura
 LARGURA_MANCHA_POL = 6.30     # 16 cm de mancha do uspsc (a4, margens 3 cm / 2 cm)
 def _pt_de(W, p=12): return p * W / LARGURA_MANCHA_POL
 
