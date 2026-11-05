@@ -5,7 +5,7 @@ requer o codigo de brown vendorizado em brown_original/ (top_opt_rl) e
 tensorflow. limitacoes declaradas: a cnn nao preve o campo de tensao
 (devolvido constante) e os canais de forca entram zerados.
 a figura deste script nao entra no texto; o acoplamento usado e o da u-net
-de campo (04_a a 04_c).
+de campo (04a a 04c).
 saida: resultados/04_benchmark_brown_surrogate.png
 """
 

@@ -1,5 +1,5 @@
 """
-injeta a u-net de campo (04_b) no lugar do mef de brown 22 na
+injeta a u-net de campo (04b) no lugar do mef de brown 22 na
 malha fina 24x24 do refinamento progressivo e compara com o dqn original e o
 simp nos tres casos do 04. diferente do 04, o substituto devolve o campo de
 tensao no formato que o agente usa como observacao, e nao um campo constante.
@@ -8,9 +8,9 @@ alem do tempo, o script conta as chamadas ao mef e ao substituto na malha
 topologia final com o mef real (a energia do substituto nao entra nessa conta).
 metas de volume: cantilever 0,35, ponte e console 0,45 (escolhidas so com o mef,
 antes da u-net). --modelo e --sufixo escolhem o modelo
-(_A: treinado tambem com episodios do benchmark; _B: --holdout do 04_b).
-requer brown_original/ (ver README.md), tensorflow e o modelo do 04_b.
-saidas: resultados/04_c_benchmark_brown_unet_A.{png,csv} (sufixo de --sufixo)
+(_A: treinado tambem com episodios do benchmark; _B: --holdout do 04b).
+requer brown_original/ (ver README.md), tensorflow e o modelo do 04b.
+saidas: resultados/04c_benchmark_brown_unet_A.{png,csv} (sufixo de --sufixo)
 """
 
 import os
@@ -54,9 +54,9 @@ plt.rcParams.update({
     "savefig.dpi": 300, "savefig.bbox": "tight", "savefig.facecolor": "white",
 })
 
-# a u-net e o formato de saida vivem em 04_b_unet_tensao.py; o solver do simp
+# a u-net e o formato de saida vivem em 04b_unet_tensao.py; o solver do simp
 # em 01_fem_simp.py. carregamos pelos caminhos dos arquivos
-_spec = spec_from_file_location("unet_tensao", os.path.join(_DIR, "04_b_unet_tensao.py"))
+_spec = spec_from_file_location("unet_tensao", os.path.join(_DIR, "04b_unet_tensao.py"))
 _unet = module_from_spec(_spec)
 _spec.loader.exec_module(_unet)
 
@@ -105,7 +105,7 @@ try:
     unet, unet_norm = _unet.carregar_unet(_UNET_PATH)
     print(f"U-Net carregada: {_UNET_PATH}")
 except FileNotFoundError:
-    print("erro: u-net nao encontrada. rode 04_a e 04_b antes.")
+    print("erro: u-net nao encontrada. rode 04a e 04b antes.")
     sys.exit(1)
 
 
@@ -293,8 +293,8 @@ def run_brown(config, use_surrogate):
 
 if __name__ == "__main__":
     _HERE = os.path.dirname(os.path.abspath(__file__))
-    _OUT = os.path.join(_HERE, "resultados", f"04_c_benchmark_brown_unet{ARGS.sufixo}.png")
-    _CSV = os.path.join(_HERE, "resultados", f"04_c_benchmark_brown_unet{ARGS.sufixo}.csv")
+    _OUT = os.path.join(_HERE, "resultados", f"04c_benchmark_brown_unet{ARGS.sufixo}.png")
+    _CSV = os.path.join(_HERE, "resultados", f"04c_benchmark_brown_unet{ARGS.sufixo}.csv")
     os.makedirs(os.path.dirname(_OUT), exist_ok=True)
     print(f"modelo: {_UNET_PATH} | metas: " +
           ", ".join(f"{k} {v['vol']:.2f}" for k, v in sorted(TEST_CASES.items())))

@@ -7,7 +7,7 @@ cada episodio troca a acao do agente por uma acao legal sorteada com
 probabilidade eps (eps = 0 reproduz a trajetoria de referencia do 04).
 casos: os tres do benchmark (cantilever, ponte, console) e casos de apoio e
 carga sorteados. requer brown_original/ (ver README.md) e tensorflow.
-uso: python 04_a_dados_brown.py [--rapido] [--workers N]
+uso: python 04a_dados_brown.py [--rapido] [--workers N]
 saida: resultados/dados/brown_tensao_24x24.npz
 """
 
@@ -35,8 +35,8 @@ sys.path.insert(0, _DIR)
 import numpy as np
 from unittest.mock import patch
 
-# o formato de entrada vive em 04_b_unet_tensao.py, carregado pelo caminho do arquivo
-_spec = spec_from_file_location("unet_tensao", os.path.join(_DIR, "04_b_unet_tensao.py"))
+# o formato de entrada vive em 04b_unet_tensao.py, carregado pelo caminho do arquivo
+_spec = spec_from_file_location("unet_tensao", os.path.join(_DIR, "04b_unet_tensao.py"))
 _unet = module_from_spec(_spec)
 _spec.loader.exec_module(_unet)
 mapas_nos = _unet.mapas_nos
@@ -240,7 +240,7 @@ if __name__ == "__main__":
     args = ap.parse_args()
 
     _HERE = os.path.dirname(os.path.abspath(__file__))
-    # o --rapido grava no mesmo arquivo (teste rapido de 04_b e 04_c); a coleta
+    # o --rapido grava no mesmo arquivo (teste rapido de 04b e 04c); a coleta
     # completa sobrescreve
     save_path = os.path.join(_HERE, "resultados", "dados", "brown_tensao_24x24.npz")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
